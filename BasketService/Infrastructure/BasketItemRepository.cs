@@ -1,3 +1,4 @@
+using BasketService.Domain.Ports.Spi;
 using BasketService.Models;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Data.SqlClient;
 
 namespace BasketService.Infrastructure
 {
-    public class BasketItemRepository
+    public class BasketItemRepository : IBasketItemRepository
     {
         private readonly string _connectionString;
 

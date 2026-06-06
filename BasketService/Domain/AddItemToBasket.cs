@@ -1,4 +1,4 @@
-using BasketService.Infrastructure;
+using BasketService.Domain.Ports.Spi;
 using BasketService.Models;
 using System.Threading.Tasks;
 
@@ -6,9 +6,9 @@ namespace BasketService.Domain
 {
     public class AddItemToBasket
     {
-        private readonly BasketItemRepository _repository;
+        private readonly IBasketItemRepository _repository;
 
-        public AddItemToBasket(BasketItemRepository repository)
+        public AddItemToBasket(IBasketItemRepository repository)
         {
             _repository = repository;
         }

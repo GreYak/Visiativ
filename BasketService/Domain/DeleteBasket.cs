@@ -1,13 +1,13 @@
-using BasketService.Infrastructure;
+using BasketService.Domain.Ports.Spi;
 using System.Threading.Tasks;
 
 namespace BasketService.Domain
 {
     public class DeleteBasket
     {
-        private readonly BasketItemRepository _repository;
+        private readonly IBasketItemRepository _repository;
 
-        public DeleteBasket(BasketItemRepository repository)
+        public DeleteBasket(IBasketItemRepository repository)
         {
             _repository = repository;
         }

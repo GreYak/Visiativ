@@ -1,8 +1,8 @@
 using BasketService.Domain;
-using BasketService.Infrastructure;
 using BasketService.Models;
 using System;
 using System.Configuration;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -15,12 +15,11 @@ namespace BasketService.Controllers
         private readonly AddItemToBasket _addItemToBasket;
         private readonly DeleteBasket _deleteBasket;
 
-        public BasketController()
+        public BasketController(GetBasket getBasket, AddItemToBasket addItemToBasket, DeleteBasket deleteBasket)
         {
-            var repository = new BasketItemRepository();
-            _getBasket       = new GetBasket(repository);
-            _addItemToBasket = new AddItemToBasket(repository);
-            _deleteBasket    = new DeleteBasket(repository);
+            _getBasket       = getBasket;
+            _addItemToBasket = addItemToBasket;
+            _deleteBasket    = deleteBasket;
         }
 
         // GET api/basket
@@ -38,19 +37,19 @@ namespace BasketService.Controllers
         public async Task<IHttpActionResult> Add(BasketItem item)
         {
             if (item == null)
-                return BadRequest("Item invalide");
+                return BadRequest("Item invalide.");
 
             await _addItemToBasket.HandleAsync(item);
             return Ok();
         }
 
-        // POST api/basket/clear
-        [HttpPost]
-        [Route("clear")]
+        // DELETE api/basket
+        [HttpDelete]
+        [Route("")]
         public async Task<IHttpActionResult> Clear()
         {
             await _deleteBasket.HandleAsync();
-            return Ok();
+            return StatusCode(HttpStatusCode.NoContent);
         }
 
         // GET api/basket/test — vérifie que la connection string est disponible
