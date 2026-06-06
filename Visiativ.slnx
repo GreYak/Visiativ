@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Visiativ.ApiService/Visiativ.ApiService.csproj" />
+  <Project Path="Visiativ.AppHost/Visiativ.AppHost.csproj" />
+  <Project Path="Visiativ.ServiceDefaults/Visiativ.ServiceDefaults.csproj" />
+  <Project Path="Visiativ.Tests/Visiativ.Tests.csproj" />
+  <Project Path="Visiativ.Web/Visiativ.Web.csproj" />
+</Solution>

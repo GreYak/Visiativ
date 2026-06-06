@@ -1,0 +1,16 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.2.4">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>aa66ba6b-df7b-43c3-8e76-6ae1f0b72ea9</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Visiativ.ApiService\Visiativ.ApiService.csproj" />
+    <ProjectReference Include="..\Visiativ.Web\Visiativ.Web.csproj" />
+  </ItemGroup>
+
+</Project>
