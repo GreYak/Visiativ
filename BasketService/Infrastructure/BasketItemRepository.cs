@@ -30,13 +30,12 @@ namespace BasketService.Infrastructure
                 {
                     while (reader.Read())
                     {
-                        items.Add(new BasketItem
-                        {
-                            ProductId = reader.GetGuid(0),
-                            Name      = reader.GetString(1),
-                            Price     = reader.GetDecimal(2),
-                            Quantity  = reader.GetInt32(3)
-                        });
+                        items.Add(new BasketItem(
+                            productId: reader.GetGuid(0),
+                            name:      reader.GetString(1),
+                            price:     reader.GetDecimal(2),
+                            quantity:  reader.GetInt32(3)
+                        ));
                     }
                 }
             }

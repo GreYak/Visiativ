@@ -85,6 +85,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Domain\GetBasket.cs" />
+    <Compile Include="Domain\AddItemToBasket.cs" />
+    <Compile Include="Domain\DeleteBasket.cs" />
     <Compile Include="Infrastructure\DatabaseInitializer.cs" />
     <Compile Include="Infrastructure\BasketItemRepository.cs" />
     <Compile Include="Controllers\BasketController.cs" />
