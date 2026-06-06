@@ -1,5 +1,7 @@
-﻿using BasketService.Models;
+using BasketService.Models;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Web.Http;
 
 namespace BasketService.Controllers
@@ -36,6 +38,24 @@ namespace BasketService.Controllers
         {
             _basket.Clear();
             return Ok();
+        }
+
+        // GET api/basket/test — vérifie que la connection string est disponible
+        // ⚠️ À supprimer avant de passer en production
+        [HttpGet]
+        [Route("test")]
+        public IHttpActionResult Test()
+        {
+            try
+            {
+                var cs = ConfigurationManager.ConnectionStrings["basketdb"]?.ConnectionString
+                    ?? "Connection string 'basketdb' introuvable dans Web.config";
+                return Ok(new { connectionString = cs });
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
         }
     }
 }

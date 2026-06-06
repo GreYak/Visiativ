@@ -1,7 +1,11 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+// Mot de passe SQL fixe => connection string statique dans Web.config du BasketService.
+// Valeur définie dans appsettings.Development.json (clé Parameters:sql-password).
+var sqlPassword = builder.AddParameter("sql-password", secret: true);
+
 // Database
-var sql = builder.AddSqlServer("sqlserver");
+var sql = builder.AddSqlServer("sqlserver", password: sqlPassword);
 var catalogDb = sql.AddDatabase("catalogdb");
 var basketDb = sql.AddDatabase("basketdb");
 
@@ -11,8 +15,13 @@ builder.AddProject<Projects.CatalogService>("catalogservice")
         .WaitFor(sql)
         .WaitFor(catalogDb);
 
-//builder.AddProject<Projects.BasketApi>("basket-api")
-//       .WithReference(basketDb);
+// BasketService (.NET Framework 4.8) : AddProject<T> ne supporte pas les anciens projets.
+// La connection string est hardcodée dans Web.config — hostname et port sont fixes
+// dans le réseau Aspire (sqlserver.dev.internal:1433), seul le mdp était variable.
+builder.AddDockerfile("basket-api", "../BasketService")
+       .WithHttpEndpoint(targetPort: 8080)
+       .WaitFor(sql)
+       .WaitFor(basketDb);
 
 //var apiService = builder.AddProject<Projects.Visiativ_ApiService>("apiservice")
 //    .WithHttpHealthCheck("/health");
@@ -22,6 +31,5 @@ builder.AddProject<Projects.CatalogService>("catalogservice")
 //    .WithHttpHealthCheck("/health")
 //    .WithReference(apiService)
 //    .WaitFor(apiService);
-
 
 builder.Build().Run();
