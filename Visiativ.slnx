@@ -1,12 +1,13 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="BasketService/BasketService.csproj" Id="3f886aef-0d5c-4fc7-ac6e-47f10566fd25" />
     <Project Path="CatalogService/CatalogService.csproj" />
     <Project Path="Visiativ.ApiService/Visiativ.ApiService.csproj" />
     <Project Path="Visiativ.Web/Visiativ.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="Visiativ.Tests/Visiativ.Tests.csproj" />
     <Project Path="CatalogService.Tests/CatalogService.Tests.csproj" />
+    <Project Path="Visiativ.Tests/Visiativ.Tests.csproj" />
   </Folder>
   <Project Path="Visiativ.AppHost/Visiativ.AppHost.csproj" />
   <Project Path="Visiativ.ServiceDefaults/Visiativ.ServiceDefaults.csproj" />
