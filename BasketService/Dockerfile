@@ -1,28 +1,26 @@
-# Build context : BasketService/ (défini via AddDockerfile dans l'AppHost)
+# Build context : BasketService via AppHost.AddDockerfile
 
-# ── Stage 1 : Build ──────────────────────────────────────────────────────────
+# Build
 FROM mono:6.12 AS build
 
 WORKDIR /src/BasketService
 
 COPY . .
 
-# Restore NuGet vers ../packages/ pour correspondre aux HintPaths du .csproj
+# Restore NuGet
 RUN nuget restore packages.config -PackagesDirectory ../packages
 
-# Mono ne fournit pas les reference assemblies au-delà de v4.7.2 =>
-# override de TargetFrameworkVersion sans modifier le .csproj
+# Limitation Mono v4.7.2 => override de TargetFrameworkVersion
 RUN msbuild BasketService.csproj \
         /p:Configuration=Release \
         /p:OutputPath=/output \
         /p:TargetFrameworkVersion=v4.7.2 \
         /p:WarningLevel=0
 
-# ── Stage 2 : Runtime ────────────────────────────────────────────────────────
+# Runtime 
 FROM mono:6.12
 
-# mono:6.12 est basé sur Debian Buster (EOL) => dépôts apt indisponibles.
-# Redirection vers les archives Debian avant tout apt-get.
+# mono:6.12 est basé sur Debian Buster (EOL) => reedirection vers les archives Debian avant tout apt-get.
 RUN sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list \
     && sed -i 's|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g' /etc/apt/sources.list \
     && sed -i '/buster-updates/d' /etc/apt/sources.list \

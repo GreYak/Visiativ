@@ -1,7 +1,6 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Mot de passe SQL fixe => connection string statique dans Web.config du BasketService.
-// Valeur définie dans appsettings.Development.json (clé Parameters:sql-password).
+// Connection string statique dans Web.config du BasketService => cf. appsettings.Development.json 
 var sqlPassword = builder.AddParameter("sql-password", secret: true);
 
 // Database
