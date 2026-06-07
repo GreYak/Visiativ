@@ -1,7 +1,7 @@
 @page "/basket"
 @rendermode InteractiveServer
 
-@inject BasketApiClient BasketApi
+@inject IVisiativApiClient Api
 
 <PageTitle>Votre panier</PageTitle>
 
@@ -68,7 +68,7 @@ else
     {
         try
         {
-            items = await BasketApi.GetBasketAsync();
+            items = await Api.GetBasketAsync();
         }
         catch (Exception ex)
         {
@@ -81,7 +81,7 @@ else
     {
         errorMessage = null;
         isProcessing = true;
-        var response = await BasketApi.ClearBasketAsync();
+        var response = await Api.ClearBasketAsync();
         if (response.IsSuccessStatusCode)
             items = [];
         else
@@ -93,7 +93,7 @@ else
     {
         errorMessage = null;
         isProcessing = true;
-        var response = await BasketApi.ClearBasketAsync();
+        var response = await Api.ClearBasketAsync();
         if (response.IsSuccessStatusCode)
             items = [];
         else

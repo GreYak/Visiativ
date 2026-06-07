@@ -8,12 +8,7 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddHttpClient<CatalogApiClient>(client =>
-{
-    client.BaseAddress = new("https+http://apiservice");
-});
-
-builder.Services.AddHttpClient<BasketApiClient>(client =>
+builder.Services.AddHttpClient<IVisiativApiClient, VisiativApiClient>(client =>
 {
     client.BaseAddress = new("https+http://apiservice");
 });

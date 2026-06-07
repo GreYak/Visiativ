@@ -1,8 +1,7 @@
 @page "/products"
 @rendermode InteractiveServer
 
-@inject CatalogApiClient CatalogApi
-@inject BasketApiClient BasketApi
+@inject IVisiativApiClient Api
 
 <PageTitle>Catalogue produits</PageTitle>
 
@@ -85,7 +84,7 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        products   = await CatalogApi.GetProductsAsync();
+        products   = await Api.GetProductsAsync();
         stocks     = products.ToDictionary(p => p.Id, p => p.Stock);
         quantities = products.ToDictionary(p => p.Id, _ => 0);
         StateHasChanged();
@@ -101,7 +100,7 @@ else
     private async Task AddToBasket(Guid productId, int qty)
     {
         errorMessage = null;
-        var response = await BasketApi.AddItemAsync(productId, qty);
+        var response = await Api.AddItemAsync(productId, qty);
         if (response.IsSuccessStatusCode)
         {
             quantities[productId] = 0;
