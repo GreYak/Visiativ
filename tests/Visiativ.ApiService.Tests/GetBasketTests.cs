@@ -3,6 +3,7 @@ using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using System.Net;
 using System.Net.Http.Json;
+using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
 
 namespace Visiativ.ApiService.Tests;
@@ -63,15 +64,15 @@ public class GetBasketTests
     }
 
     [Test]
-    public async Task Returns500_WhenClientThrows()
+    public async Task Returns503_WhenClientUnavailable()
     {
         _factory.BasketClient
             .GetBasketAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromException<IEnumerable<BasketItem>>(
-                new HttpRequestException("BasketService unavailable")));
+                new ServiceUnavailableException("BasketService")));
 
         var response = await _client.GetAsync("/basket");
 
-        Assert.That((int)response.StatusCode, Is.EqualTo(500));
+        Assert.That((int)response.StatusCode, Is.EqualTo(503));
     }
 }

@@ -2,6 +2,7 @@ using NSubstitute;
 using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using System.Net;
+using Visiativ.ApiService.Exceptions;
 
 namespace Visiativ.ApiService.Tests;
 
@@ -40,14 +41,14 @@ public class ClearBasketTests
     }
 
     [Test]
-    public async Task Returns500_WhenClientThrows()
+    public async Task Returns503_WhenClientUnavailable()
     {
         _factory.BasketClient
             .ClearBasketAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException(new HttpRequestException("BasketService unavailable")));
+            .Returns(Task.FromException(new ServiceUnavailableException("BasketService")));
 
         var response = await _client.DeleteAsync("/basket");
 
-        Assert.That((int)response.StatusCode, Is.EqualTo(500));
+        Assert.That((int)response.StatusCode, Is.EqualTo(503));
     }
 }

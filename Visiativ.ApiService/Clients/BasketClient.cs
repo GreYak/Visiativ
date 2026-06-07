@@ -1,4 +1,5 @@
 using Visiativ.ApiService.Abstractions;
+using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
 
 namespace Visiativ.ApiService.Clients;
@@ -7,19 +8,52 @@ public class BasketClient(HttpClient http) : IBasketClient
 {
     public async Task<IEnumerable<BasketItem>> GetBasketAsync(CancellationToken ct = default)
     {
-        var result = await http.GetFromJsonAsync<IEnumerable<BasketItem>>("/api/basket", ct);
-        return result ?? [];
+        try
+        {
+            var result = await http.GetFromJsonAsync<IEnumerable<BasketItem>>("/api/basket", ct);
+            return result ?? [];
+        }
+        catch (HttpRequestException)
+        {
+            throw new ServiceUnavailableException("BasketService");
+        }
     }
 
     public async Task AddItemAsync(BasketItem item, CancellationToken ct = default)
     {
-        var response = await http.PostAsJsonAsync("/api/basket/add", item, ct);
-        response.EnsureSuccessStatusCode();
+        HttpResponseMessage response;
+        try
+        {
+            response = await http.PostAsJsonAsync("/api/basket/add", item, ct);
+        }
+        catch (HttpRequestException)
+        {
+            throw new ServiceUnavailableException("BasketService");
+        }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            var message = await response.Content.ReadAsStringAsync(ct);
+            throw new RemoteValidationException(message);
+        }
+
+        if (!response.IsSuccessStatusCode)
+            throw new ServiceUnavailableException("BasketService");
     }
 
     public async Task ClearBasketAsync(CancellationToken ct = default)
     {
-        var response = await http.DeleteAsync("/api/basket", ct);
-        response.EnsureSuccessStatusCode();
+        HttpResponseMessage response;
+        try
+        {
+            response = await http.DeleteAsync("/api/basket", ct);
+        }
+        catch (HttpRequestException)
+        {
+            throw new ServiceUnavailableException("BasketService");
+        }
+
+        if (!response.IsSuccessStatusCode)
+            throw new ServiceUnavailableException("BasketService");
     }
 }

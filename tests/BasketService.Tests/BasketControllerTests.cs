@@ -144,9 +144,25 @@ namespace BasketService.Tests
         [Test]
         public async Task Add_Returns400_WhenQuantityIsNegative()
         {
-            // Test RED : la validation n'est pas encore implémentée dans le controller
             var repo = Substitute.For<IBasketItemRepository>();
             var item = new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, -1);
+
+            using (var client = CreateClient(repo))
+            {
+                var content  = new StringContent(
+                    JsonConvert.SerializeObject(item),
+                    System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(BaseUrl + "/add", content);
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            }
+        }
+
+        [Test]
+        public async Task Add_Returns400_WhenQuantityIsZero()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+            var item = new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 0);
 
             using (var client = CreateClient(repo))
             {

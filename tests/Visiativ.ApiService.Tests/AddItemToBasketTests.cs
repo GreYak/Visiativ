@@ -3,6 +3,7 @@ using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using System.Net;
 using System.Net.Http.Json;
+using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
 
 namespace Visiativ.ApiService.Tests;
@@ -70,7 +71,7 @@ public class AddItemToBasketTests
             .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 2));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 5)); // 5 > stock de 2
+            new AddItemRequest(productId, Quantity: 5));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
@@ -89,23 +90,11 @@ public class AddItemToBasketTests
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
+    /// <summary>
+    /// Le BasketService a rejeté l'item (quantité invalide) : le BFF propage le 400.
+    /// </summary>
     [Test]
-    public async Task Returns500_WhenCatalogThrows()
-    {
-        var productId = Guid.NewGuid();
-        _factory.CatalogClient
-            .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<ProductResponse?>(
-                new HttpRequestException("CatalogService unavailable")));
-
-        var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 1));
-
-        Assert.That((int)response.StatusCode, Is.EqualTo(500));
-    }
-
-    [Test]
-    public async Task Returns500_WhenBasketThrows()
+    public async Task Returns400_WhenBasketRejectsItem_DueToInvalidQuantity()
     {
         var productId = Guid.NewGuid();
         _factory.CatalogClient
@@ -113,11 +102,60 @@ public class AddItemToBasketTests
             .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
         _factory.BasketClient
             .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromException(new HttpRequestException("BasketService unavailable")));
+            .Returns(Task.FromException(
+                new RemoteValidationException("La quantité doit être supérieure à zéro.")));
+
+        var response = await _client.PostAsJsonAsync("/basket/items",
+            new AddItemRequest(productId, Quantity: 3));
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task Returns503_WhenCatalogUnavailable()
+    {
+        var productId = Guid.NewGuid();
+        _factory.CatalogClient
+            .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<ProductResponse?>(
+                new ServiceUnavailableException("CatalogService")));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
             new AddItemRequest(productId, Quantity: 1));
 
-        Assert.That((int)response.StatusCode, Is.EqualTo(500));
+        Assert.That((int)response.StatusCode, Is.EqualTo(503));
+    }
+
+    [Test]
+    public async Task Returns503_WhenBasketUnavailable()
+    {
+        var productId = Guid.NewGuid();
+        _factory.CatalogClient
+            .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
+            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
+        _factory.BasketClient
+            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new ServiceUnavailableException("BasketService")));
+
+        var response = await _client.PostAsJsonAsync("/basket/items",
+            new AddItemRequest(productId, Quantity: 1));
+
+        Assert.That((int)response.StatusCode, Is.EqualTo(503));
+    }
+
+    [Test]
+    public async Task Returns503Body_ContainsServiceName_WhenCatalogUnavailable()
+    {
+        var productId = Guid.NewGuid();
+        _factory.CatalogClient
+            .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<ProductResponse?>(
+                new ServiceUnavailableException("CatalogService")));
+
+        var response = await _client.PostAsJsonAsync("/basket/items",
+            new AddItemRequest(productId, Quantity: 1));
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.That(body, Does.Contain("CatalogService"));
     }
 }

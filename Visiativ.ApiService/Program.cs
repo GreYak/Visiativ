@@ -1,11 +1,14 @@
 using Visiativ.ApiService.Abstractions;
 using Visiativ.ApiService.Clients;
 using Visiativ.ApiService.Endpoints;
+using Visiativ.ApiService.ExceptionHandlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ServiceUnavailableExceptionHandler>();
+builder.Services.AddExceptionHandler<RemoteValidationExceptionHandler>();
 builder.Services.AddOpenApi();
 
 // Clients HTTP — URLs résolues par Aspire service discovery

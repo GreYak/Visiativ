@@ -39,8 +39,15 @@ namespace BasketService.Controllers
             if (item == null)
                 return BadRequest("Item invalide.");
 
-            await _addItemToBasket.HandleAsync(item);
-            return Ok();
+            try
+            {
+                await _addItemToBasket.HandleAsync(item);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE api/basket
