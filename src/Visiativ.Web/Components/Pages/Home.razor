@@ -1,7 +1,27 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Accueil — Visiativ</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Bienvenue sur Visiativ</h1>
 
-Welcome to your new app.
+<p>Application e-commerce de démonstration. Deux pages sont à votre disposition :</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">
+            <span class="bi bi-list-nested me-2"></span>Catalogue produits
+        </h5>
+        <p class="card-text">Consultez l'ensemble des articles disponibles. Pour chaque produit, utilisez le bouton <strong>+</strong> pour sélectionner une quantité puis <strong>Add x</strong> pour l'ajouter à votre panier.</p>
+        <a href="/products" class="btn btn-primary">Voir le catalogue</a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">
+            <span class="bi bi-cart-fill me-2"></span>Votre panier
+        </h5>
+        <p class="card-text">Consultez les articles ajoutés à votre panier. Vous pouvez vider le panier ou procéder au paiement.</p>
+        <a href="/basket" class="btn btn-primary">Voir le panier</a>
+    </div>
+</div>

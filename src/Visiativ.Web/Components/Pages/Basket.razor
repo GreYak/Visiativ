@@ -14,7 +14,7 @@
 
 @if (items == null)
 {
-    <p><em>Chargement...</em></p>
+    <p><em>Chargement de votre panier...</em></p>
 }
 else if (items.Length == 0)
 {
@@ -41,15 +41,31 @@ else
             }
         </tbody>
     </table>
+
+    <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-outline-danger" @onclick="ClearBasket" disabled="@isProcessing">
+            Vider le panier
+        </button>
+        <button class="btn btn-success" @onclick="Checkout" disabled="@isProcessing">
+            Payer
+        </button>
+    </div>
 }
 
 @code {
     private BasketItemResponse[]? items;
     private string? errorMessage;
+    private bool isProcessing;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+        await LoadBasket();
+        StateHasChanged();
+    }
+
+    private async Task LoadBasket()
+    {
         try
         {
             items = await BasketApi.GetBasketAsync();
@@ -59,6 +75,29 @@ else
             errorMessage = $"Impossible de charger le panier : {ex.Message}";
             items = [];
         }
-        StateHasChanged();
+    }
+
+    private async Task ClearBasket()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        var response = await BasketApi.ClearBasketAsync();
+        if (response.IsSuccessStatusCode)
+            items = [];
+        else
+            errorMessage = "Impossible de vider le panier.";
+        isProcessing = false;
+    }
+
+    private async Task Checkout()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        var response = await BasketApi.ClearBasketAsync();
+        if (response.IsSuccessStatusCode)
+            items = [];
+        else
+            errorMessage = "Erreur lors du paiement.";
+        isProcessing = false;
     }
 }

@@ -82,11 +82,13 @@ else
     private Dictionary<Guid, int> quantities = [];
     private string? errorMessage;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        products = await CatalogApi.GetProductsAsync();
-        stocks    = products.ToDictionary(p => p.Id, p => p.Stock);
+        if (!firstRender) return;
+        products   = await CatalogApi.GetProductsAsync();
+        stocks     = products.ToDictionary(p => p.Id, p => p.Stock);
         quantities = products.ToDictionary(p => p.Id, _ => 0);
+        StateHasChanged();
     }
 
     private void Increment(Guid productId)

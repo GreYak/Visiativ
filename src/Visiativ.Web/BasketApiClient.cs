@@ -12,6 +12,11 @@ public class BasketApiClient(HttpClient httpClient)
     {
         return await httpClient.PostAsJsonAsync("/basket/items", new { productId, quantity }, cancellationToken);
     }
+
+    public async Task<HttpResponseMessage> ClearBasketAsync(CancellationToken cancellationToken = default)
+    {
+        return await httpClient.DeleteAsync("/basket", cancellationToken);
+    }
 }
 
 public record BasketItemResponse(Guid ProductId, string Name, decimal Price, int Quantity);
