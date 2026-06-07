@@ -31,7 +31,7 @@ namespace BasketService.Controllers
             return Ok(items);
         }
 
-        // POST api/basket/add
+        // POST api/basket/add  (body JSON)
         [HttpPost]
         [Route("add")]
         public async Task<IHttpActionResult> Add(BasketItem item)

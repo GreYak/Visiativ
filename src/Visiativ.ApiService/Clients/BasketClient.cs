@@ -24,7 +24,25 @@ public class BasketClient(HttpClient http) : IBasketClient
         HttpResponseMessage response;
         try
         {
-            response = await http.PostAsJsonAsync("/api/basket/add", item, ct);
+            // PostAsJsonAsync utilise JsonContent dont la longueur est parfois inconnue
+            // au moment de l'envoi → HttpClient peut envoyer en chunked transfer encoding.
+            // XSP4/Mono 6.12 ne lit pas correctement un body chunked de façon async
+            // → Socket.Receive(non-bloquant) → WOULDBLOCK.
+            // Fix : StringContent + ContentLength explicite → body envoyé en une seule fois
+            // avec header Content-Length (pas de chunked), + désactivation Expect: 100-continue.
+            var json = System.Text.Json.JsonSerializer.Serialize(item);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            content.Headers.ContentLength = bytes.Length;
+
+            var req = new HttpRequestMessage(HttpMethod.Post, "/api/basket/add")
+            {
+                Content = content
+            };
+            // Désactive Expect: 100-continue — évite que XSP4 doive envoyer 100 avant le body
+            req.Headers.ExpectContinue = false;
+
+            response = await http.SendAsync(req, ct);
         }
         catch (HttpRequestException)
         {
