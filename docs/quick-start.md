@@ -72,8 +72,25 @@ Le dashboard Aspire s'ouvre automatiquement dans le navigateur. Les URLs de chaq
 |---|---|
 | Dashboard Aspire | `http://localhost:18888` |
 | BFF (ApiService) | `http://localhost:5XXX` |
+| BFF — Swagger UI | `http://localhost:5XXX/swagger` |
 | CatalogService | `http://localhost:5XXX` |
 | BasketService | `http://localhost:8080` (via Docker) |
+
+---
+
+## Explorer les APIs
+
+### Swagger UI — BFF (ApiService)
+
+En mode développement, une interface interactive **Scalar** est disponible sur le BFF à l'adresse :
+
+```
+http://localhost:5XXX/scalar/v1
+```
+
+Elle permet d'explorer et de tester tous les endpoints du BFF (`/products`, `/basket`, `/basket/items`) sans outil externe.
+
+> La spec OpenAPI brute est également accessible sur `/swagger/v1/swagger.json`.
 
 ---
 
@@ -81,21 +98,9 @@ Le dashboard Aspire s'ouvre automatiquement dans le navigateur. Les URLs de chaq
 
 ### Catalogue produits (CatalogService)
 
-La base `catalogdb` est créée et migrée automatiquement au démarrage en environnement `Development`. La table `Products` est vide par défaut. Insérer des produits de démo via l'endpoint OpenAPI du CatalogService (disponible en mode développement à `/openapi`) :
+La base `catalogdb` est créée, migrée et **pré-chargée** automatiquement au démarrage en environnement `Development` avec 6 produits informatiques (Laptop, Souris, Clavier, Moniteur, Casque, Webcam) dont les stocks sont générés aléatoirement entre 0 et 15.
 
-```http
-POST http://<catalogservice>/products
-Content-Type: application/json
-
-[
-  { "name": "Laptop Pro 15", "description": "Ordinateur portable haute performance", "price": 1299.99, "stock": 5 },
-  { "name": "Souris sans fil", "description": "Souris ergonomique 2.4 GHz", "price": 29.99, "stock": 50 },
-  { "name": "Clavier mécanique", "description": "Switch Cherry MX Blue, rétroéclairé", "price": 89.99, "stock": 20 },
-  { "name": "Moniteur 27 pouces", "description": "QHD 165 Hz, dalle IPS", "price": 399.99, "stock": 0 }
-]
-```
-
-> Le produit *Moniteur 27 pouces* avec `stock: 0` permet de tester le cas d'erreur *stock insuffisant*.
+> Un produit avec `stock: 0` est possible à chaque lancement (stocks aléatoires) — il permet de tester le cas d'erreur *stock insuffisant* via le BFF.
 
 ### Panier (BasketService)
 

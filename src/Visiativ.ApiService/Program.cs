@@ -23,7 +23,35 @@ var app = builder.Build();
 app.UseExceptionHandlingMiddleware();
 
 if (app.Environment.IsDevelopment())
-    app.MapOpenApi();
+{
+    app.MapOpenApi(); // spec JSON sur /openapi/v1.json
+
+    // Swagger UI (CDN) — aucun package supplémentaire requis
+    app.MapGet("/swagger", () => Results.Content("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Visiativ API — Swagger UI</title>
+          <meta charset="utf-8"/>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css"/>
+        </head>
+        <body>
+          <div id="swagger-ui"></div>
+          <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+          <script>
+            SwaggerUIBundle({
+              url: '/openapi/v1.json',
+              dom_id: '#swagger-ui',
+              presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+              layout: 'BaseLayout'
+            });
+          </script>
+        </body>
+        </html>
+        """, "text/html"))
+        .ExcludeFromDescription();
+}
 
 app.MapCatalogEndpoints();
 app.MapBasketEndpoints();

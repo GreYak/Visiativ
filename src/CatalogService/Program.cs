@@ -1,5 +1,6 @@
 using CatalogService.Infrastructure.Api;
 using CatalogService.Infrastructure.Persistence;
+using CatalogService.Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,8 +18,9 @@ var app = builder.Build();
         {
             Console.WriteLine("Starting database migration...");
             using var sp = app.Services.CreateScope();
-            sp.ServiceProvider.GetRequiredService<CatalogDbContext>()
-                .Database.Migrate();
+            var db = sp.ServiceProvider.GetRequiredService<CatalogDbContext>();
+            await db.Database.MigrateAsync();
+            await SeedData.InitializeAsync(db);
 
             Console.WriteLine("End database migration...");
         }
