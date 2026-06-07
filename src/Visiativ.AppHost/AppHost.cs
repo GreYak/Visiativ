@@ -14,7 +14,7 @@ var catalogService = builder.AddProject<Projects.CatalogService>("catalogservice
     .WaitFor(catalogDb);
 
 // BasketService (.NET Framework 4.8 — connection string dans Web.config)
-var basketApi = builder.AddDockerfile("basket-api", "../BasketService")
+var basketApi = builder.AddDockerfile("basketservice", "../BasketService")
     .WithHttpEndpoint(targetPort: 8080, name: "http");
 
 // BFF 

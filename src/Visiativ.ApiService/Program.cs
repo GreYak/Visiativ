@@ -12,7 +12,7 @@ builder.Services.AddHttpClient<ICatalogClient, CatalogClient>(c =>
     c.BaseAddress = new Uri("http://catalogservice"));
 
 builder.Services.AddHttpClient<IBasketClient, BasketClient>(c =>
-    c.BaseAddress = new Uri("http://basket-api"));
+    c.BaseAddress = new Uri("http://basketservice"));
 
 var app = builder.Build();
 

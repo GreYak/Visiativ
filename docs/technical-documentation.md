@@ -189,7 +189,7 @@ Retourne un produit par son identifiant.
 
 ---
 
-### BasketService — `http://basket-api` (Docker, port 8080)
+### BasketService — `http://basketservice` (Docker, port 8080)
 
 Pas de documentation OpenAPI (stack legacy). Testable via `GET /api/basket/test` *(⚠️ à supprimer avant toute mise en production — expose la connection string).*
 

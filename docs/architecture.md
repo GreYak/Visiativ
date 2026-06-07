@@ -10,7 +10,7 @@ Mini application e-commerce permettant à un utilisateur de consulter un catalog
 
 [.NET Aspire](https://learn.microsoft.com/fr-fr/dotnet/aspire/get-started/aspire-overview) a été retenu comme solution d'orchestration locale pour les raisons suivantes :
 
-- **Service discovery automatique** : les services se référencent par nom (`http://catalogservice`, `http://basket-api`) sans configuration manuelle de ports.
+- **Service discovery automatique** : les services se référencent par nom (`http://catalogservice`, `http://basketservice`) sans configuration manuelle de ports.
 - **Provisioning des ressources** : le conteneur SQL Server (et ses deux bases) est déclaré dans l'AppHost et démarré automatiquement.
 - **Health checks et démarrage ordonné** : le BFF attend la disponibilité du CatalogService avant de démarrer (`WaitFor`).
 - **Dashboard de supervision intégré** : traces, logs et métriques centralisés via OpenTelemetry sans infrastructure supplémentaire.
