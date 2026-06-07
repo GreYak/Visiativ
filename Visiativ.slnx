@@ -16,7 +16,6 @@
     <Project Path="tests/BasketService.Tests/BasketService.Tests.csproj" />
     <Project Path="tests/CatalogService.Tests/CatalogService.Tests.csproj" />
     <Project Path="tests/Visiativ.ApiService.Tests/Visiativ.ApiService.Tests.csproj" />
-    <Project Path="tests/Visiativ.Tests/Visiativ.Tests.csproj" />
     <Project Path="tests/Visiativ.Web.Tests/Visiativ.Web.Tests.csproj" />
   </Folder>
 </Solution>

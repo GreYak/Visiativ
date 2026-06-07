@@ -3,7 +3,9 @@ var builder = DistributedApplication.CreateBuilder(args);
 var sqlPassword = builder.AddParameter("sql-password", secret: true);
 
 // Database
-var sql = builder.AddSqlServer("sqlserver", password: sqlPassword);
+var sql = builder.AddSqlServer("sqlserver", password: sqlPassword)
+    .WithDataVolume()
+    .WithLifetime(ContainerLifetime.Persistent);
 var catalogDb = sql.AddDatabase("catalogdb");
 var basketDb  = sql.AddDatabase("basketdb");
 
@@ -15,13 +17,16 @@ var catalogService = builder.AddProject<Projects.CatalogService>("catalogservice
 
 // BasketService (.NET Framework 4.8 — connection string dans Web.config)
 var basketApi = builder.AddDockerfile("basketservice", "../BasketService")
-    .WithHttpEndpoint(targetPort: 8080, name: "http");
+    .WithHttpEndpoint(targetPort: 8080, name: "http")
+    .WaitFor(basketDb)                               // attend que SQL Server ET la base basketdb soient prêts
+    .WithHttpHealthCheck("/api/basket/test");         // Aspire sait quand le container est vraiment up
 
 // BFF
 var apiService = builder.AddProject<Projects.Visiativ_ApiService>("apiservice")
     .WithReference(catalogService)
     .WithReference(basketApi.GetEndpoint("http"))
     .WaitFor(catalogService)
+    .WaitFor(basketApi)                              // BFF ne démarre qu'une fois basket healthy
     .WithHttpHealthCheck("/health");
 
 // Frontend

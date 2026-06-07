@@ -3,6 +3,7 @@ using Autofac.Integration.WebApi;
 using BasketService.Domain;
 using BasketService.Domain.Ports.Spi;
 using BasketService.Infrastructure;
+using System;
 using System.Reflection;
 using System.Web.Http;
 
@@ -25,7 +26,14 @@ namespace BasketService
             var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 
-            DatabaseInitializer.Initialize();
+            try
+            {
+                DatabaseInitializer.Initialize();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Failed to initialize the database: {ex.Message}");
+            }
         }
     }
 }
