@@ -7,6 +7,7 @@ using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Visiativ.ServiceDefaults.Middlewares;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -104,6 +105,16 @@ public static class Extensions
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
         return builder;
+    }
+
+    /// <summary>
+    /// Enregistre le middleware catch-all partagé (log + JSON 500).
+    /// À appeler en premier dans le pipeline, avant <c>MapDefaultEndpoints</c> et les routes.
+    /// </summary>
+    public static WebApplication UseExceptionHandlingMiddleware(this WebApplication app)
+    {
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        return app;
     }
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)

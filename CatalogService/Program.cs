@@ -1,5 +1,4 @@
 using CatalogService.Infrastructure.Api;
-using CatalogService.Infrastructure.Middleware;
 using CatalogService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,7 +28,7 @@ var app = builder.Build();
             return;
         }
     }
-    app.UseMiddleware<ExceptionHandlingMiddleware>();
+    app.UseExceptionHandlingMiddleware();
     app.MapDefaultEndpoints();      // ???????
     app.MapProductEndpoints();
     app.Run();

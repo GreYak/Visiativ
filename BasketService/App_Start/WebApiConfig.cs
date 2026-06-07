@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BasketService.Filters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -10,6 +11,9 @@ namespace BasketService
     {
         public static void Register(HttpConfiguration config)
         {
+            // Filtre d'exception global : log + JSON 500 uniforme pour toute exception non gérée
+            config.Filters.Add(new GlobalExceptionFilter());
+
             // Configuration et services de l'API Web
 
             // Itinéraires de l'API Web

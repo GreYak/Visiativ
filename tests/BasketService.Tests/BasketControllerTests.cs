@@ -93,6 +93,23 @@ namespace BasketService.Tests
             }
         }
 
+        [Test]
+        public async Task Get_Returns500WithJsonBody_WhenRepositoryThrows()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+            repo.Get().Throws(new Exception("DB error"));
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await client.GetAsync(BaseUrl);
+                var body = await response.Content.ReadAsStringAsync();
+
+                Assert.That((int)response.StatusCode, Is.EqualTo(500));
+                Assert.That(body, Does.Contain("error"),
+                    "Le filtre global doit retourner un corps JSON avec une clé 'error'.");
+            }
+        }
+
         // ── DELETE /api/basket ────────────────────────────────────────────────
 
         [Test]
@@ -119,6 +136,23 @@ namespace BasketService.Tests
                 var response = await client.DeleteAsync(BaseUrl);
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(500));
+            }
+        }
+
+        [Test]
+        public async Task Delete_Returns500WithJsonBody_WhenRepositoryThrows()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+            repo.When(r => r.Clear()).Throw(new Exception("DB error"));
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await client.DeleteAsync(BaseUrl);
+                var body = await response.Content.ReadAsStringAsync();
+
+                Assert.That((int)response.StatusCode, Is.EqualTo(500));
+                Assert.That(body, Does.Contain("error"),
+                    "Le filtre global doit retourner un corps JSON avec une clé 'error'.");
             }
         }
 
@@ -190,6 +224,27 @@ namespace BasketService.Tests
                 var response = await client.PostAsync(BaseUrl + "/add", content);
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(500));
+            }
+        }
+
+        [Test]
+        public async Task Add_Returns500WithJsonBody_WhenRepositoryThrows()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+            repo.When(r => r.Add(Arg.Any<BasketItem>())).Throw(new Exception("DB error"));
+            var item = new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 1);
+
+            using (var client = CreateClient(repo))
+            {
+                var content  = new StringContent(
+                    JsonConvert.SerializeObject(item),
+                    System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(BaseUrl + "/add", content);
+                var body = await response.Content.ReadAsStringAsync();
+
+                Assert.That((int)response.StatusCode, Is.EqualTo(500));
+                Assert.That(body, Does.Contain("error"),
+                    "Le filtre global doit retourner un corps JSON avec une clé 'error'.");
             }
         }
 

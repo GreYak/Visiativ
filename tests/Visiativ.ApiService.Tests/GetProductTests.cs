@@ -62,16 +62,36 @@ public class GetProductsTests
         Assert.That(body, Has.Count.EqualTo(2));
     }
 
+    /// <summary>
+    /// Exception technique inattendue (ex. bug, NullRef…) non gérée par l'endpoint :
+    /// le middleware ExceptionHandlingMiddleware doit la catcher et retourner un JSON 500 uniforme.
+    /// </summary>
     [Test]
-    public async Task Returns500_WhenClientThrows()
+    public async Task Returns500_WhenClientThrowsUnexpectedly()
     {
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromException<IEnumerable<ProductResponse>>(
-                new HttpRequestException("CatalogService unavailable")));
+                new InvalidOperationException("Unexpected technical error")));
 
         var response = await _client.GetAsync("/products");
 
         Assert.That((int)response.StatusCode, Is.EqualTo(500));
+    }
+
+    [Test]
+    public async Task Returns500WithJsonBody_WhenClientThrowsUnexpectedly()
+    {
+        _factory.CatalogClient
+            .GetAllProductsAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<IEnumerable<ProductResponse>>(
+                new InvalidOperationException("Unexpected technical error")));
+
+        var response = await _client.GetAsync("/products");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.That((int)response.StatusCode, Is.EqualTo(500));
+        Assert.That(body, Does.Contain("error"),
+            "Le middleware doit retourner un corps JSON avec une clé 'error'.");
     }
 }
