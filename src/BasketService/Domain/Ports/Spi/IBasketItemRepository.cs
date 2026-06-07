@@ -6,7 +6,7 @@ namespace BasketService.Domain.Ports.Spi
     public interface IBasketItemRepository
     {
         IEnumerable<BasketItem> Get();
-        void Add(BasketItem item);
+        void EnsureBasketItem(BasketItem item);
         void Clear();
     }
 }

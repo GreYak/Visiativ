@@ -44,13 +44,17 @@ namespace BasketService.Infrastructure
             return items;
         }
 
-        public void Add(BasketItem item)
+        /// <summary>
+        /// Insère l'item s'il n'existe pas encore, ou met à jour sa quantité et son prix.
+        /// La quantité passée est la quantité finale souhaitée — le calcul d'accumulation
+        /// est de la responsabilité du domaine (<see cref="Domain.AddItemToBasket"/>).
+        /// </summary>
+        public void EnsureBasketItem(BasketItem item)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
 
-                // MERGE : insert si absent, update Quantity et Price si déjà présent
                 var sql = @"
                     MERGE BasketItems AS target
                     USING (SELECT @ProductId AS ProductId) AS source

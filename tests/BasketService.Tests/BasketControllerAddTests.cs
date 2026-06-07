@@ -1,0 +1,133 @@
+using BasketService.Domain.Ports.Spi;
+using BasketService.Models;
+using NSubstitute;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+
+namespace BasketService.Tests
+{
+    [TestFixture]
+    public class BasketControllerAddTests : BasketControllerTestBase
+    {
+        [Test]
+        public async Task Add_Returns200_WhenItemIsValid()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+            repo.Get().Returns(new List<BasketItem>());
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 1));
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            }
+        }
+
+        [Test]
+        public async Task Add_Returns400_WhenQuantityIsNegative()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, -1));
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            }
+        }
+
+        [Test]
+        public async Task Add_Returns400_WhenQuantityIsZero()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 0));
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            }
+        }
+
+        [Test]
+        public async Task Add_Returns500_WhenRepositoryThrows()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+            repo.Get().Returns(new List<BasketItem>());
+            repo.When(r => r.EnsureBasketItem(Arg.Any<BasketItem>())).Throw(new Exception("DB error"));
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 1));
+
+                Assert.That((int)response.StatusCode, Is.EqualTo(500));
+            }
+        }
+
+        [Test]
+        public async Task Add_Returns500WithJsonBody_WhenRepositoryThrows()
+        {
+            var repo = Substitute.For<IBasketItemRepository>();
+            repo.Get().Returns(new List<BasketItem>());
+            repo.When(r => r.EnsureBasketItem(Arg.Any<BasketItem>())).Throw(new Exception("DB error"));
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 1));
+                var body = await response.Content.ReadAsStringAsync();
+
+                Assert.That((int)response.StatusCode, Is.EqualTo(500));
+                Assert.That(body, Does.Contain("error"));
+            }
+        }
+
+        [Test]
+        public async Task Add_NewItem_StoresOriginalQuantity()
+        {
+            var repo = new InMemoryBasketItemRepository();
+            var productId = Guid.NewGuid();
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 2));
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(repo.Get().Single(i => i.ProductId == productId).Quantity, Is.EqualTo(2));
+            }
+        }
+
+        [Test]
+        public async Task Add_SameItemTwice_AccumulatesQuantities()
+        {
+            var repo = new InMemoryBasketItemRepository();
+            var productId = Guid.NewGuid();
+
+            using (var client = CreateClient(repo))
+            {
+                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 2));
+                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 3));
+
+                Assert.That(repo.Get().Single(i => i.ProductId == productId).Quantity, Is.EqualTo(5));
+            }
+        }
+
+        [Test]
+        public async Task Add_SameItemTwice_UpdatesPriceToLatest()
+        {
+            var repo = new InMemoryBasketItemRepository();
+            var productId = Guid.NewGuid();
+
+            using (var client = CreateClient(repo))
+            {
+                await PostItem(client, new BasketItem(productId, "Laptop", 899.99m, 1));
+                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 1));
+
+                Assert.That(repo.Get().Single(i => i.ProductId == productId).Price, Is.EqualTo(999.99m));
+            }
+        }
+    }
+}
