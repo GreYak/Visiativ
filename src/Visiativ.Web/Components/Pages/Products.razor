@@ -7,9 +7,19 @@
 
 <h1>Catalogue produits</h1>
 
+@if (successMessage is not null)
+{
+    <div class="alert alert-success alert-dismissible">
+        @successMessage
+        <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+    </div>
+}
 @if (errorMessage is not null)
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="alert alert-danger alert-dismissible">
+        @errorMessage
+        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+    </div>
 }
 
 @if (products == null)
@@ -80,6 +90,7 @@ else
     private Dictionary<Guid, int> stocks = [];
     private Dictionary<Guid, int> quantities = [];
     private string? errorMessage;
+    private string? successMessage;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -99,18 +110,28 @@ else
 
     private async Task AddToBasket(Guid productId, int qty)
     {
-        errorMessage = null;
-        var response = await Api.AddItemAsync(productId, qty);
-        if (response.IsSuccessStatusCode)
+        successMessage = null;
+        errorMessage   = null;
+        try
         {
-            quantities[productId] = 0;
+            var response = await Api.AddItemAsync(productId, qty);
+            if (response.IsSuccessStatusCode)
+            {
+                quantities[productId] = 0;
+                successMessage = $"✓ Ajouté au panier ({qty} article{(qty > 1 ? "s" : "")})";
+            }
+            else
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Erreur {(int)response.StatusCode} — {body}";
+                stocks[productId]    += qty;
+                quantities[productId] = 0;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var msg = await response.Content.ReadAsStringAsync();
-            errorMessage = $"Erreur : {msg}";
-            // rollback affichage
-            stocks[productId] += qty;
+            errorMessage = $"Erreur réseau — {ex.Message}";
+            stocks[productId]    += qty;
             quantities[productId] = 0;
         }
     }

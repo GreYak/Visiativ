@@ -14,6 +14,10 @@ namespace BasketService.Filters
     {
         public override void OnException(HttpActionExecutedContext context)
         {
+            // Visible dans docker logs (stderr redirigé vers stdout par XSP4)
+            Console.Error.WriteLine(
+                $"[BasketService] {context.Request.Method} {context.Request.RequestUri} => {context.Exception}");
+
             System.Diagnostics.Trace.TraceError(
                 "[BasketService] Exception non gérée sur {0} {1} : {2}",
                 context.Request.Method,

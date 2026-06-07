@@ -11,6 +11,9 @@ namespace BasketService
     {
         public static void Register(HttpConfiguration config)
         {
+            // Log toutes les requêtes entrantes et réponses sortantes
+            config.MessageHandlers.Add(new Handlers.LoggingHandler());
+
             // Filtre d'exception global : log + JSON 500 uniforme pour toute exception non gérée
             config.Filters.Add(new GlobalExceptionFilter());
 

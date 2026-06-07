@@ -116,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Handlers\LoggingHandler.cs" />
     <Compile Include="Filters\GlobalExceptionFilter.cs" />
     <Compile Include="Domain\Ports\Spi\IBasketItemRepository.cs" />
     <Compile Include="Domain\GetBasket.cs" />
