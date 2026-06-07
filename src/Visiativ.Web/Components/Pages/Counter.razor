@@ -1,19 +1,64 @@
-﻿@page "/counter"
+@page "/basket"
 @rendermode InteractiveServer
 
-<PageTitle>Counter</PageTitle>
+@inject BasketApiClient BasketApi
 
-<h1>Counter</h1>
+<PageTitle>Votre panier</PageTitle>
 
-<p role="status">Current count: @currentCount</p>
+<h1>Votre panier</h1>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (items == null)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (items.Length == 0)
+{
+    <p>Votre panier est vide.</p>
+}
+else
+{
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Quantité</th>
+                <th>Article</th>
+                <th>Prix (€)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Quantity</td>
+                    <td>@item.Name</td>
+                    <td>@item.Price.ToString("F2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @code {
-    private int currentCount = 0;
+    private BasketItemResponse[]? items;
+    private string? errorMessage;
 
-    private void IncrementCount()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        currentCount++;
+        if (!firstRender) return;
+        try
+        {
+            items = await BasketApi.GetBasketAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Impossible de charger le panier : {ex.Message}";
+            items = [];
+        }
+        StateHasChanged();
     }
 }

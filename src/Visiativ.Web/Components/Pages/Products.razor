@@ -1,48 +1,73 @@
 @page "/products"
-@attribute [StreamRendering(true)]
+@rendermode InteractiveServer
 
 @inject CatalogApiClient CatalogApi
+@inject BasketApiClient BasketApi
 
 <PageTitle>Catalogue produits</PageTitle>
 
 <h1>Catalogue produits</h1>
 
-<p>Liste des produits disponibles.</p>
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
 
 @if (products == null)
 {
     <p><em>Chargement...</em></p>
 }
-else if (!products.Any())
+else if (products.Length == 0)
 {
     <p>Aucun produit disponible.</p>
 }
 else
 {
-    <table class="table">
+    <table class="table align-middle">
         <thead>
             <tr>
                 <th>Nom</th>
                 <th>Description</th>
                 <th>Prix (€)</th>
                 <th>Stock</th>
+                <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var product in products)
             {
+                var qty = quantities[product.Id];
+                var stock = stocks[product.Id];
+
                 <tr>
                     <td>@product.Name</td>
                     <td>@product.Description</td>
                     <td>@product.Price.ToString("F2")</td>
                     <td>
-                        @if (product.Stock == 0)
+                        @if (stock == 0)
                         {
                             <span class="badge bg-danger">Rupture</span>
                         }
                         else
                         {
-                            @product.Stock
+                            @stock
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary"
+                                @onclick="() => Increment(product.Id)"
+                                disabled="@(stock == 0)">
+                            <span class="bi bi-plus-square-fill"></span>
+                        </button>
+                    </td>
+                    <td>
+                        @if (qty > 0)
+                        {
+                            <button class="btn btn-sm btn-success"
+                                    @onclick="() => AddToBasket(product.Id, qty)">
+                                Add @qty
+                            </button>
                         }
                     </td>
                 </tr>
@@ -53,9 +78,39 @@ else
 
 @code {
     private ProductResponse[]? products;
+    private Dictionary<Guid, int> stocks = [];
+    private Dictionary<Guid, int> quantities = [];
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         products = await CatalogApi.GetProductsAsync();
+        stocks    = products.ToDictionary(p => p.Id, p => p.Stock);
+        quantities = products.ToDictionary(p => p.Id, _ => 0);
+    }
+
+    private void Increment(Guid productId)
+    {
+        if (stocks[productId] <= 0) return;
+        stocks[productId]--;
+        quantities[productId]++;
+    }
+
+    private async Task AddToBasket(Guid productId, int qty)
+    {
+        errorMessage = null;
+        var response = await BasketApi.AddItemAsync(productId, qty);
+        if (response.IsSuccessStatusCode)
+        {
+            quantities[productId] = 0;
+        }
+        else
+        {
+            var msg = await response.Content.ReadAsStringAsync();
+            errorMessage = $"Erreur : {msg}";
+            // rollback affichage
+            stocks[productId] += qty;
+            quantities[productId] = 0;
+        }
     }
 }
