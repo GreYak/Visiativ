@@ -8,6 +8,7 @@
   <Folder Name="/tests/">
     <Project Path="CatalogService.Tests/CatalogService.Tests.csproj" />
     <Project Path="tests/BasketService.Tests/BasketService.Tests.csproj" />
+    <Project Path="tests/Visiativ.ApiService.Tests/Visiativ.ApiService.Tests.csproj" />
     <Project Path="Visiativ.Tests/Visiativ.Tests.csproj" />
   </Folder>
   <Project Path="Visiativ.AppHost/Visiativ.AppHost.csproj" />

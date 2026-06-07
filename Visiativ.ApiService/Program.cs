@@ -28,3 +28,6 @@ app.MapBasketEndpoints();
 app.MapDefaultEndpoints();
 
 app.Run();
+
+// Requis pour WebApplicationFactory<Program> dans les tests
+public partial class Program { }
