@@ -16,10 +16,11 @@ builder.Services.AddHttpClient<IBasketClient, BasketClient>(c =>
 
 var app = builder.Build();
 
-// Middleware catch-all partagé (log + JSON 500 uniforme).
-// Positionné en premier : intercepte toute exception technique non gérée par les endpoints.
-// Les erreurs métier (503 service indisponible, 400 validation) sont traitées inline
-// dans chaque endpoint via try/catch explicite.
+// Pipeline middleware — ordre important :
+// 1. RequestLogging   : log toutes les requêtes/réponses avec niveau sémantique + elapsed time
+// 2. ExceptionHandling: catch-all technique → JSON 500 uniforme
+// Les erreurs métier (503, 400) sont traitées inline dans chaque endpoint.
+app.UseRequestLogging();
 app.UseExceptionHandlingMiddleware();
 
 if (app.Environment.IsDevelopment())

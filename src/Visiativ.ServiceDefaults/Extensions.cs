@@ -8,6 +8,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Visiativ.ServiceDefaults.Middlewares;
+using Visiativ.ServiceDefaults.Networking;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -16,8 +17,34 @@ namespace Microsoft.Extensions.Hosting;
 // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
 public static class Extensions
 {
-    private const string HealthEndpointPath = "/health";
+    private const string HealthEndpointPath    = "/health";
     private const string AlivenessEndpointPath = "/alive";
+
+    // Préfixes et extensions exclus des traces OTel et des logs de requêtes.
+    // Même liste que RequestLoggingMiddleware — centralisée ici pour la config OTel.
+    private static readonly string[] _noisyPrefixes =
+    [
+        "/health", "/alive",
+        "/_blazor",
+        "/_framework",
+        "/_content",
+        "/lib/",
+    ];
+
+    private static readonly string[] _noisyExtensions =
+    [
+        ".css", ".js", ".mjs",
+        ".woff", ".woff2", ".ttf", ".eot",
+        ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico",
+        ".map",
+    ];
+
+    private static bool IsNoisyRequest(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+        return _noisyPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase))
+            || _noisyExtensions.Any(e => path.EndsWith(e, StringComparison.OrdinalIgnoreCase));
+    }
 
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
@@ -27,10 +54,14 @@ public static class Extensions
 
         builder.Services.AddServiceDiscovery();
 
+        // OutboundHttpLoggingHandler doit être enregistré avant ConfigureHttpClientDefaults
+        // pour être résolu correctement par le DI lors de la création des HttpClients.
+        builder.Services.AddTransient<OutboundHttpLoggingHandler>();
+
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
-            // Turn on service discovery by default
             http.AddServiceDiscovery();
+            http.AddHttpMessageHandler<OutboundHttpLoggingHandler>();
         });
 
         // Uncomment the following to restrict the allowed schemes for service discovery.
@@ -60,11 +91,10 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation(tracing =>
-                        // Exclude health check requests from tracing
-                        tracing.Filter = context =>
-                            !context.Request.Path.StartsWithSegments(HealthEndpointPath)
-                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
+                    .AddAspNetCoreInstrumentation(options =>
+                        // Exclut du tracing : health checks, SignalR Blazor, assets statiques.
+                        // On ne veut voir que les requêtes HTTP entre briques applicatives.
+                        options.Filter = context => !IsNoisyRequest(context.Request.Path.Value)
                     )
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
@@ -105,8 +135,20 @@ public static class Extensions
     }
 
     /// <summary>
+    /// Enregistre le middleware de log des requêtes HTTP.
+    /// Info sur les requêtes entrantes et réponses 2xx/3xx,
+    /// Warning sur les 4xx, Error sur les 5xx, avec elapsed time.
+    /// À appeler en position la plus externe du pipeline (avant UseExceptionHandlingMiddleware).
+    /// </summary>
+    public static WebApplication UseRequestLogging(this WebApplication app)
+    {
+        app.UseMiddleware<RequestLoggingMiddleware>();
+        return app;
+    }
+
+    /// <summary>
     /// Enregistre le middleware catch-all partagé (log + JSON 500).
-    /// À appeler en premier dans le pipeline, avant <c>MapDefaultEndpoints</c> et les routes.
+    /// À appeler après <c>UseRequestLogging</c>, avant les routes.
     /// </summary>
     public static WebApplication UseExceptionHandlingMiddleware(this WebApplication app)
     {

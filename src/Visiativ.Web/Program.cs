@@ -15,6 +15,8 @@ builder.Services.AddHttpClient<IVisiativApiClient, VisiativApiClient>(client =>
 
 var app = builder.Build();
 
+app.UseRequestLogging();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

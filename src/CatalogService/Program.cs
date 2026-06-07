@@ -11,27 +11,28 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 var app = builder.Build();
+
     if (app.Environment.IsDevelopment())
     {
-        // Database migration
         try
         {
-            Console.WriteLine("Starting database migration...");
+            app.Logger.LogInformation("Database migration starting...");
             using var sp = app.Services.CreateScope();
             var db = sp.ServiceProvider.GetRequiredService<CatalogDbContext>();
             await db.Database.MigrateAsync();
             await SeedData.InitializeAsync(db);
-
-            Console.WriteLine("End database migration...");
+            app.Logger.LogInformation("Database migration completed.");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"An error occurred while migrating the database: {e.Message}");
+            app.Logger.LogCritical(e, "Database migration failed. Application startup aborted.");
             return;
         }
     }
+
+    app.UseRequestLogging();
     app.UseExceptionHandlingMiddleware();
-    app.MapDefaultEndpoints();      // ???????
+    app.MapDefaultEndpoints();
     app.MapProductEndpoints();
     app.Run();
 
