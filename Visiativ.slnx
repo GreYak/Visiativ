@@ -1,16 +1,21 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="BasketService/BasketService.csproj" Id="3f886aef-0d5c-4fc7-ac6e-47f10566fd25" />
-    <Project Path="CatalogService/CatalogService.csproj" />
-    <Project Path="Visiativ.ApiService/Visiativ.ApiService.csproj" />
-    <Project Path="Visiativ.Web/Visiativ.Web.csproj" />
+    <Project Path="src/BasketService/BasketService.csproj" Id="3f886aef-0d5c-4fc7-ac6e-47f10566fd25" />
+    <Project Path="src/CatalogService/CatalogService.csproj" />
+    <Project Path="src/Visiativ.ApiService/Visiativ.ApiService.csproj" />
+    <Project Path="src/Visiativ.AppHost/Visiativ.AppHost.csproj" />
+    <Project Path="src/Visiativ.ServiceDefaults/Visiativ.ServiceDefaults.csproj" />
+    <Project Path="src/Visiativ.Web/Visiativ.Web.csproj" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/quick-start.md" />
+    <File Path="docs/architecture.md" />
+    <File Path="docs/technical-documentation.md" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="CatalogService.Tests/CatalogService.Tests.csproj" />
     <Project Path="tests/BasketService.Tests/BasketService.Tests.csproj" />
+    <Project Path="tests/CatalogService.Tests/CatalogService.Tests.csproj" />
     <Project Path="tests/Visiativ.ApiService.Tests/Visiativ.ApiService.Tests.csproj" />
-    <Project Path="Visiativ.Tests/Visiativ.Tests.csproj" />
+    <Project Path="tests/Visiativ.Tests/Visiativ.Tests.csproj" />
   </Folder>
-  <Project Path="Visiativ.AppHost/Visiativ.AppHost.csproj" />
-  <Project Path="Visiativ.ServiceDefaults/Visiativ.ServiceDefaults.csproj" />
 </Solution>

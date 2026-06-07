@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CatalogService\CatalogService.csproj" />
+    <ProjectReference Include="..\..\src\CatalogService\CatalogService.csproj" />
   </ItemGroup>
 
 </Project>

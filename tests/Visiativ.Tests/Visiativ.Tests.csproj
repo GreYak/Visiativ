@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Visiativ.AppHost\Visiativ.AppHost.csproj" />
+    <ProjectReference Include="..\..\src\Visiativ.AppHost\Visiativ.AppHost.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Visiativ.ApiService\Visiativ.ApiService.csproj" />
+    <ProjectReference Include="..\..\src\Visiativ.ApiService\Visiativ.ApiService.csproj" />
   </ItemGroup>
 
 </Project>

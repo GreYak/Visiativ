@@ -8,7 +8,7 @@ WORKDIR /src/BasketService
 COPY . .
 
 # Restore NuGet
-RUN nuget restore packages.config -PackagesDirectory ../packages
+RUN nuget restore packages.config -PackagesDirectory ../../packages
 
 # Limitation Mono v4.7.2 => override de TargetFrameworkVersion
 RUN msbuild BasketService.csproj \
