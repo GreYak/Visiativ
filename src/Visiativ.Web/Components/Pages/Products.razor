@@ -1,0 +1,61 @@
+@page "/products"
+@attribute [StreamRendering(true)]
+
+@inject CatalogApiClient CatalogApi
+
+<PageTitle>Catalogue produits</PageTitle>
+
+<h1>Catalogue produits</h1>
+
+<p>Liste des produits disponibles.</p>
+
+@if (products == null)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (!products.Any())
+{
+    <p>Aucun produit disponible.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Prix (€)</th>
+                <th>Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Description</td>
+                    <td>@product.Price.ToString("F2")</td>
+                    <td>
+                        @if (product.Stock == 0)
+                        {
+                            <span class="badge bg-danger">Rupture</span>
+                        }
+                        else
+                        {
+                            @product.Stock
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private ProductResponse[]? products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await CatalogApi.GetProductsAsync();
+    }
+}

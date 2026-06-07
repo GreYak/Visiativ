@@ -17,17 +17,18 @@ var catalogService = builder.AddProject<Projects.CatalogService>("catalogservice
 var basketApi = builder.AddDockerfile("basketservice", "../BasketService")
     .WithHttpEndpoint(targetPort: 8080, name: "http");
 
-// BFF 
-builder.AddProject<Projects.Visiativ_ApiService>("apiservice")
+// BFF
+var apiService = builder.AddProject<Projects.Visiativ_ApiService>("apiservice")
     .WithReference(catalogService)
     .WithReference(basketApi.GetEndpoint("http"))
     .WaitFor(catalogService)
     .WithHttpHealthCheck("/health");
 
-//builder.AddProject<Projects.Visiativ_Web>("webfrontend")
-//    .WithExternalHttpEndpoints()
-//    .WithHttpHealthCheck("/health")
-//    .WithReference(apiService)
-//    .WaitFor(apiService);
+// Frontend
+builder.AddProject<Projects.Visiativ_Web>("webfrontend")
+    .WithExternalHttpEndpoints()
+    .WithHttpHealthCheck("/health")
+    .WithReference(apiService)
+    .WaitFor(apiService);
 
 builder.Build().Run();
