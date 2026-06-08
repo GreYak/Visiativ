@@ -78,17 +78,20 @@ Le dashboard Aspire s'ouvre automatiquement dans le navigateur. Les URLs de chaq
 
 ---
 
-## Données de démo
+## Base de données
 
-### Catalogue produits (CatalogService)
+### Création des bases de données
 
-La base `catalogdb` est créée, migrée et **pré-chargée** automatiquement au démarrage en environnement `Development` avec 6 produits informatiques (Laptop, Souris, Clavier, Moniteur, Casque, Webcam) dont les stocks sont générés aléatoirement entre 0 et 15.
+Les deux bases de données sont créées et initialisées automatiquement au démarrage — aucune intervention manuelle n'est nécessaire.
 
-> Un produit avec `stock: 0` est possible à chaque lancement (stocks aléatoires) — il permet de tester le cas d'erreur *stock insuffisant* via le BFF.
+- **`catalogdb`** (CatalogService) : la base est créée et les migrations EF Core sont appliquées automatiquement en environnement `Development`.
+- **`BasketItems`** (BasketService) : la table est créée au démarrage par `DatabaseInitializer.Initialize()` si elle n'existe pas.
 
-### Panier (BasketService)
+### Injection du catalogue
 
-La table `BasketItems` est créée automatiquement au démarrage si elle n'existe pas (`DatabaseInitializer.Initialize()`). Aucune donnée initiale — le panier est vide.
+En environnement `Development`, CatalogService pré-charge automatiquement 6 produits informatiques (Laptop, Souris, Clavier, Moniteur, Casque, Webcam). Les stocks sont générés aléatoirement entre 0 et 15 à chaque démarrage. Le panier démarre toujours vide.
+
+> Un produit avec `stock: 0` est possible à chaque lancement — il permet de tester le cas *stock insuffisant* via le BFF.
 
 ---
 

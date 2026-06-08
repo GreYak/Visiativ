@@ -4,7 +4,7 @@ Démonstration de la cohabitation d'une stack moderne (.NET 10) et d'une stack l
 
 ---
 
-## Architecture en un coup d'œil
+## Survol des composants
 
 | Bloc | Rôle | Technologie |
 |---|---|---|
@@ -42,7 +42,6 @@ cd visiativ
 |---|---|
 | [quick-start.md](docs/quick-start.md) | Prérequis, installation, lancement pas à pas |
 | [architecture.md](docs/architecture.md) | Présentation des briques, schéma global, diagrammes de séquence |
-| [technical-documentation.md](docs/technical-documentation.md) | Structure solution, gestion des erreurs, choix techniques et limites |
 | [technical-documentation.catalogservice.md](docs/technical-documentation.catalogservice.md) | Modèle, EF Core, migrations, APIs CatalogService |
 | [technical-documentation.basketservice.md](docs/technical-documentation.basketservice.md) | Modèle, DB ADO.NET, APIs BasketService |
 | [technical-documentation.apiservice.md](docs/technical-documentation.apiservice.md) | Clients HTTP, endpoints BFF, modèles, traduction des erreurs |
