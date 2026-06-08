@@ -220,17 +220,16 @@ sequenceDiagram
 
 Aspire élimine toute la configuration manuelle habituelle d'un environnement multi-services (ports, connection strings, ordre de démarrage, health checks). La totalité de l'orchestration est déclarative dans `AppHost.cs`. Le dashboard intégré offre une supervision immédiate sans infrastructure observabilité supplémentaire.
 
+Un seul F5 démarre l'intégralité de la stack (SQL Server, BasketService sous Mono, CatalogService, BFF, frontend) — sans configuration manuelle de base de données, de ports ou de variables d'environnement. Seuls Docker Desktop et le SDK .NET 10 sont requis.
+
 ### Mono 6.12 / XSP4 pour BasketService
 
 Le test impose .NET Framework 4.8 pour le BasketService. Pour s'intégrer dans un environnement Docker/Linux comme les autres services (et éviter les Windows containers qui nécessitent une configuration spécifique de Docker Desktop), l'image `mono:6.12` avec le serveur `xsp4` a été retenue. MSBuild compile le projet en ciblant `v4.7.2` (limitation de compatibilité Mono), ce qui est transparent pour le comportement applicatif.
 
-### BFF Pattern
-
-Le frontend ne connaît qu'un seul point d'entrée. Le BFF est responsable de l'orchestration (appel catalogue + vérification stock + appel panier) et de la consolidation des données (enrichissement des items du panier avec les infos catalogue via `BasketItemDto`). Les services backend restent internes et non exposés directement.
 
 ### Minimal API pour CatalogService et le BFF
 
-Les Minimal APIs d'ASP.NET Core réduisent la cérémonie pour des services dont les endpoints sont peu nombreux et clairement délimités. Le routage déclaratif reste lisible et les endpoints sont facilement testables via `WebApplicationFactory`.
+CatalogService expose 2 endpoints en lecture seule ; le BFF en expose 4. Ce scope délibérément restreint rend le pattern Minimal API naturel : pas de contrôleurs, pas de cérémonie, un fichier d'endpoints par ressource. Le routage déclaratif reste lisible et les endpoints sont facilement testables via `WebApplicationFactory`.
 
 ### ADO.NET + MERGE SQL pour BasketService
 
@@ -242,7 +241,7 @@ Contrainte du test. L'opération `MERGE` garantit l'idempotence de l'ajout au pa
 
 ### Séparation des données dans le panier
 
-Le BasketService ne stocke que `ProductId` et `Quantity` — les informations produit (nom, prix, description, stock) viennent exclusivement du CatalogService. Cette séparation évite la duplication et la désynchronisation des données : le prix affiché dans le panier est toujours le prix catalogue en vigueur au moment de la consultation.
+Le BasketService ne stocke que `ProductId` et `Quantity` — les informations produit (nom, prix, description, stock) viennent exclusivement du CatalogService. Chaque service reste propriétaire de son domaine, conformément aux principes DDD : le catalogue est la source de vérité sur les produits, le panier sur l'intention d'achat. Cette séparation évite la duplication et la désynchronisation des données : le prix affiché dans le panier est toujours le prix catalogue en vigueur au moment de la consultation.
 
 ---
 
@@ -252,9 +251,9 @@ Le BasketService ne stocke que `ProductId` et `Quantity` — les informations pr
 
 **Panier unique / pas d'authentification** — Le panier est une table plate sans notion de session ou d'utilisateur. Tous les visiteurs partagent le même panier. L'ajout d'une colonne `UserId` ou d'un système de session serait nécessaire pour une application réelle.
 
-**Race condition sur le stock** — La vérification du stock est faite dans le BFF (lecture depuis CatalogService), mais l'ajout dans le panier est une opération séparée dans BasketService. Entre les deux appels, le stock peut avoir changé (achat concurrent). Une solution correcte impliquerait une réservation atomique côté CatalogService.
+**Non-gestion des stocks** — La gestion des stocks était hors scope du test : aucune décrémentation n'est effectuée lors d'un ajout au panier. Le champ `Stock` du CatalogService sert uniquement de garde-fou à l'ajout (le BFF refuse si `quantity > stock`), mais n'est jamais mis à jour. Par ailleurs, cette vérification n'est pas atomique : entre la lecture du stock côté CatalogService et l'ajout dans BasketService, le stock peut avoir changé (achat concurrent). Dans une architecture réelle, une nouvelle vérification de disponibilité serait effectuée au moment du paiement, avant toute confirmation de commande.
 
-**Panier dépendant du catalogue** — Si le CatalogService est indisponible, la consultation du panier échoue (le BFF ne peut pas enrichir les items). Une stratégie de cache ou un fallback dégradé (retourner les items sans enrichissement) améliorerait la résilience.
+**Panier dépendant du catalogue** — C'est un défaut by design du BFF et de cette architecture : le BFF consolidant systématiquement les données des deux services, l'indisponibilité du CatalogService introduit un point of failure sur la consultation du panier. Une stratégie de cache ou un fallback dégradé (retourner les items sans enrichissement) améliorerait la résilience.
 
 **Route de diagnostic exposée** — `GET /api/basket/test` retourne la connection string SQL en clair. Ce endpoint de debug doit être supprimé avant toute mise en production.
 
