@@ -15,11 +15,17 @@ public class BasketPageTests
     private TestContext ctx = null!;
     private IVisiativApiClient api = null!;
 
-    private static BasketItemResponse[] DeuxArticles() =>
-    [
-        new(Guid.NewGuid(), "Laptop Pro",  999.99m, 1),
-        new(Guid.NewGuid(), "Souris USB",   29.99m, 2),
-    ];
+    private static BasketResult DeuxArticles() => new(
+        Items:
+        [
+            new(Guid.NewGuid(), "Laptop Pro", "Ordinateur haute gamme", 999.99m, Quantity: 1, Stock: 10),
+            new(Guid.NewGuid(), "Souris USB", "Souris sans fil",         29.99m, Quantity: 2, Stock:  5),
+        ],
+        IsPartial: false);
+
+    private static BasketResult PanierPartiel() => new(
+        Items: [new(Guid.NewGuid(), "Laptop Pro", "Ordinateur haute gamme", 999.99m, Quantity: 1, Stock: 10)],
+        IsPartial: true);
 
     [SetUp]
     public void SetUp()
@@ -36,7 +42,7 @@ public class BasketPageTests
     public void AffichageChargement_AvantDonnes()
     {
         api.GetBasketAsync(default).ReturnsForAnyArgs(_ =>
-            Task.Delay(Timeout.Infinite).ContinueWith<BasketItemResponse[]>(_ => []));
+            Task.Delay(Timeout.Infinite).ContinueWith<BasketResult>(_ => new([], false)));
 
         var cut = ctx.RenderComponent<Basket>();
 
@@ -46,7 +52,7 @@ public class BasketPageTests
     [Test]
     public void AfficheVideMessage_SiPanierVide()
     {
-        api.GetBasketAsync(default).ReturnsForAnyArgs(Array.Empty<BasketItemResponse>());
+        api.GetBasketAsync(default).ReturnsForAnyArgs(new BasketResult([], false));
 
         var cut = ctx.RenderComponent<Basket>();
 
@@ -115,9 +121,21 @@ public class BasketPageTests
     }
 
     [Test]
+    public void AfficheAvertissement_SiPanierPartiel()
+    {
+        api.GetBasketAsync(default).ReturnsForAnyArgs(PanierPartiel());
+
+        var cut = ctx.RenderComponent<Basket>();
+
+        cut.WaitForAssertion(() =>
+            Assert.That(cut.Find(".alert-warning").TextContent,
+                Does.Contain("retirés du panier").IgnoreCase));
+    }
+
+    [Test]
     public void AfficheErreur_SiChargementEchoue()
     {
-        api.GetBasketAsync(default).ReturnsForAnyArgs<BasketItemResponse[]>(_ =>
+        api.GetBasketAsync(default).ReturnsForAnyArgs<BasketResult>(_ =>
             throw new HttpRequestException("Service indisponible"));
 
         var cut = ctx.RenderComponent<Basket>();

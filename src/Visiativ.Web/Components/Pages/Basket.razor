@@ -7,6 +7,13 @@
 
 <h1>Votre panier</h1>
 
+@if (partialWarning)
+{
+    <div class="alert alert-warning alert-dismissible">
+        Certains items ont été retirés du panier pour épuisement de stock.
+        <button type="button" class="btn-close" @onclick="() => partialWarning = false"></button>
+    </div>
+}
 @if (errorMessage is not null)
 {
     <div class="alert alert-danger">@errorMessage</div>
@@ -56,6 +63,7 @@ else
     private BasketItemResponse[]? items;
     private string? errorMessage;
     private bool isProcessing;
+    private bool partialWarning;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -68,7 +76,9 @@ else
     {
         try
         {
-            items = await Api.GetBasketAsync();
+            var result    = await Api.GetBasketAsync();
+            items         = result.Items;
+            partialWarning = result.IsPartial;
         }
         catch (Exception ex)
         {

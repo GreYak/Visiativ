@@ -12,22 +12,55 @@ public static class BasketEndpoints
         var group = app.MapGroup("/basket").WithTags("Basket");
 
         // GET /basket
-        group.MapGet("/", async (IBasketClient basket, CancellationToken ct) =>
+        group.MapGet("/", async (IBasketClient basket, ICatalogClient catalog, CancellationToken ct) =>
         {
-            try
-            {
-                return Results.Ok(await basket.GetBasketAsync(ct));
-            }
+            // 1. Récupération des entrées panier (ProductId + Quantity)
+            IEnumerable<BasketItem> entries;
+            try { entries = await basket.GetBasketAsync(ct); }
             catch (ServiceUnavailableException ex)
             {
                 return Results.Problem(
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: $"Le service '{ex.ServiceName}' est temporairement indisponible.");
             }
+
+            // 2. Récupération du catalogue pour enrichir les entrées
+            IEnumerable<ProductResponse> products;
+            try { products = await catalog.GetAllProductsAsync(ct); }
+            catch (ServiceUnavailableException ex)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: $"Le service '{ex.ServiceName}' est temporairement indisponible.");
+            }
+
+            // 3. Consolidation : les items absents du catalogue sont ignorés (207 si au moins un)
+            var productMap = products.ToDictionary(p => p.Id);
+            var dtos       = new List<BasketItemDto>();
+            var isPartial  = false;
+
+            foreach (var item in entries)
+            {
+                if (productMap.TryGetValue(item.ProductId, out var product))
+                    dtos.Add(new BasketItemDto(
+                        ProductId:   item.ProductId,
+                        Name:        product.Name,
+                        Description: product.Description,
+                        Price:       product.Price,
+                        Quantity:    item.Quantity,
+                        Stock:       product.Stock));
+                else
+                    isPartial = true;
+            }
+
+            return isPartial
+                ? Results.Json(dtos, statusCode: StatusCodes.Status207MultiStatus)
+                : Results.Ok(dtos);
         })
         .WithName("BFF_GetBasket")
-        .WithSummary("Retourne le contenu du panier.")
-        .Produces<IEnumerable<BasketItem>>()
+        .WithSummary("Retourne le contenu du panier, enrichi des informations catalogue.")
+        .Produces<IEnumerable<BasketItemDto>>()
+        .Produces(StatusCodes.Status207MultiStatus)
         .Produces(StatusCodes.Status503ServiceUnavailable);
 
         // DELETE /basket
