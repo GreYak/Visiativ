@@ -255,8 +255,6 @@ Le BasketService ne stocke que `ProductId` et `Quantity` — les informations pr
 
 **Panier dépendant du catalogue** — C'est un défaut by design du BFF et de cette architecture : le BFF consolidant systématiquement les données des deux services, l'indisponibilité du CatalogService introduit un point of failure sur la consultation du panier. Une stratégie de cache ou un fallback dégradé (retourner les items sans enrichissement) améliorerait la résilience.
 
-**Route de diagnostic exposée** — `GET /api/basket/test` retourne la connection string SQL en clair. Ce endpoint de debug doit être supprimé avant toute mise en production.
-
 **Mono EOL** — L'image `mono:6.12` repose sur Debian Buster (fin de vie). Les sources APT sont redirigées vers les archives Debian dans le `Dockerfile`. Acceptable pour un contexte de démonstration, à adresser si le service est amené à vivre en production.
 
 **Logging basique sur BasketService** — Le `GlobalExceptionFilter` utilise `System.Diagnostics.Trace` (pas d'intégration OpenTelemetry). En production, une intégration avec un logger structuré (Serilog ou NLog avec sink OpenTelemetry) serait recommandée.

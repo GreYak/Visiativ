@@ -19,7 +19,7 @@ var catalogService = builder.AddProject<Projects.CatalogService>("catalogservice
 var basketApi = builder.AddDockerfile("basketservice", "../BasketService")
     .WithHttpEndpoint(targetPort: 8080, name: "http")
     .WaitFor(basketDb)                               // attend que SQL Server ET la base basketdb soient prêts
-    .WithHttpHealthCheck("/api/basket/test");         // Aspire sait quand le container est vraiment up
+    .WithHttpHealthCheck("/api/basket/alive");         // Aspire sait quand le container est vraiment up
 
 // BFF
 var apiService = builder.AddProject<Projects.Visiativ_ApiService>("apiservice")

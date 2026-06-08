@@ -1,7 +1,6 @@
 using BasketService.Domain;
 using BasketService.Models;
 using System;
-using System.Configuration;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -66,22 +65,9 @@ namespace BasketService.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // GET api/basket/test — vérifie que la connection string est disponible
-        // ⚠️ À supprimer avant de passer en production
+        // GET api/basket/alive — sonde de liveness pour Aspire
         [HttpGet]
-        [Route("test")]
-        public IHttpActionResult Test()
-        {
-            try
-            {
-                var cs = ConfigurationManager.ConnectionStrings["basketdb"]?.ConnectionString
-                    ?? "Connection string 'basketdb' introuvable dans Web.config";
-                return Ok(new { connectionString = cs });
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError(ex);
-            }
-        }
+        [Route("alive")]
+        public IHttpActionResult IsAlive() => Ok(true);
     }
 }
