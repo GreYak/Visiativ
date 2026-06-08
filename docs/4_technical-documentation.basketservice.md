@@ -35,9 +35,11 @@ BasketService/
 ├── Controllers/
 │   └── BasketController.cs           # GET /api/basket, POST /api/basket/add, DELETE /api/basket
 ├── Domain/
-│   ├── AddItemToBasket.cs            # Cas d'utilisation ajout (validation quantité + limitMax)
-│   ├── GetBasket.cs
-│   ├── DeleteBasket.cs
+│   ├── Model/
+│   │   └── BasketItem.cs             # Modèle métier (ProductId, Quantity)
+│   ├── AddItemToBasketUseCase.cs     # Cas d'utilisation ajout (validation quantité + limitMax)
+│   ├── GetBasketUseCase.cs
+│   ├── DeleteBasketUseCase.cs
 │   └── Ports/Spi/
 │       └── IBasketItemRepository.cs  # Port SPI — permet le mock dans les tests
 ├── Filters/
@@ -46,12 +48,12 @@ BasketService/
 │   ├── BasketItemRepository.cs       # ADO.NET + MERGE SQL
 │   └── DatabaseInitializer.cs        # Création et migration de la table BasketItems
 ├── Models/
-│   ├── BasketItem.cs                 # (ProductId, Quantity)
+│   ├── BasketItemResponse.cs         # DTO de réponse exposé par GET /api/basket
 │   └── AddItemRequest.cs             # Corps POST add (ProductId, Quantity, LimitMax?)
 └── Dockerfile                         # Build Mono 6.12 / XSP4
 ```
 
-### Logique domaine — `AddItemToBasket`
+### Logique domaine — `AddItemToBasketUseCase`
 
 ```
 1. Valide Quantity > 0            → ArgumentException        → 400
@@ -65,6 +67,25 @@ BasketService/
 ---
 
 ## 4. Modèle de données / base de données
+
+### Modèles applicatifs
+
+Les modèles sont séparés en deux catégories :
+
+**Modèle domaine (`/Domain/Model`)**
+
+| Type | Description |
+|---|---|
+| `BasketItem` | Entité métier représentant une ligne du panier : `{ productId, quantity }` |
+
+**DTO de réponse (`/Models`)**
+
+| Type | Description |
+|---|---|
+| `BasketItemResponse` | DTO exposé par `GET /api/basket` : `{ productId, quantity }` |
+| `AddItemRequest` | Corps du `POST /api/basket/add` reçu du BFF : `{ productId, quantity, limitMax? }` |
+
+Le contrôleur mappe les `BasketItem` domaine vers `BasketItemResponse` via `BasketItemResponse.From(item)` avant de sérialiser la réponse.
 
 ### Table `BasketItems`
 

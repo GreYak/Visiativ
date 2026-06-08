@@ -1,5 +1,5 @@
 using BasketService.Domain.Ports.Spi;
-using BasketService.Models;
+using BasketService.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -45,7 +45,7 @@ namespace BasketService.Infrastructure
         /// <summary>
         /// Insère l'item s'il n'existe pas encore, ou met à jour sa quantité.
         /// La quantité passée est la quantité finale — le calcul d'accumulation
-        /// est de la responsabilité du domaine (<see cref="Domain.AddItemToBasket"/>).
+        /// est de la responsabilité du domaine (<see cref="Domain.AddItemToBasketUseCase"/>).
         /// </summary>
         public void EnsureBasketItem(BasketItem item)
         {

@@ -1,6 +1,8 @@
 using BasketService.Domain;
+using BasketService.Domain.Model;
 using BasketService.Models;
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -10,11 +12,11 @@ namespace BasketService.Controllers
     [RoutePrefix("api/basket")]
     public class BasketController : ApiController
     {
-        private readonly GetBasket _getBasket;
-        private readonly AddItemToBasket _addItemToBasket;
-        private readonly DeleteBasket _deleteBasket;
+        private readonly GetBasketUseCase _getBasket;
+        private readonly AddItemToBasketUseCase _addItemToBasket;
+        private readonly DeleteBasketUseCase _deleteBasket;
 
-        public BasketController(GetBasket getBasket, AddItemToBasket addItemToBasket, DeleteBasket deleteBasket)
+        public BasketController(GetBasketUseCase getBasket, AddItemToBasketUseCase addItemToBasket, DeleteBasketUseCase deleteBasket)
         {
             _getBasket       = getBasket;
             _addItemToBasket = addItemToBasket;
@@ -27,7 +29,7 @@ namespace BasketService.Controllers
         public async Task<IHttpActionResult> Get()
         {
             var items = await _getBasket.HandleAsync();
-            return Ok(items);
+            return Ok(items.Select(BasketItemResponse.From));
         }
 
         // POST api/basket/add  (body JSON : { productId, quantity, limitMax? })

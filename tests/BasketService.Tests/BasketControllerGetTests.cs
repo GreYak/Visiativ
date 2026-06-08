@@ -1,3 +1,4 @@
+using BasketService.Domain.Model;
 using BasketService.Domain.Ports.Spi;
 using BasketService.Models;
 using Newtonsoft.Json;
@@ -25,7 +26,7 @@ namespace BasketService.Tests
                 var response = await client.GetAsync(BaseUrl);
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-                var body = JsonConvert.DeserializeObject<List<BasketItem>>(
+                var body = JsonConvert.DeserializeObject<List<BasketItemResponse>>(
                     await response.Content.ReadAsStringAsync());
                 Assert.That(body, Is.Empty);
             }
@@ -47,7 +48,7 @@ namespace BasketService.Tests
                 var response = await client.GetAsync(BaseUrl);
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-                var body = JsonConvert.DeserializeObject<List<BasketItem>>(
+                var body = JsonConvert.DeserializeObject<List<BasketItemResponse>>(
                     await response.Content.ReadAsStringAsync());
                 Assert.That(body, Has.Count.EqualTo(2));
             }

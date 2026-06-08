@@ -1,5 +1,5 @@
+using BasketService.Domain.Model;
 using BasketService.Domain.Ports.Spi;
-using BasketService.Models;
 using System.Collections.Generic;
 using System.Linq;
 

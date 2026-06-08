@@ -119,9 +119,9 @@
     <Compile Include="Handlers\LoggingHandler.cs" />
     <Compile Include="Filters\GlobalExceptionFilter.cs" />
     <Compile Include="Domain\Ports\Spi\IBasketItemRepository.cs" />
-    <Compile Include="Domain\GetBasket.cs" />
-    <Compile Include="Domain\AddItemToBasket.cs" />
-    <Compile Include="Domain\DeleteBasket.cs" />
+    <Compile Include="Domain\GetBasketUseCase.cs" />
+    <Compile Include="Domain\AddItemToBasketUseCase.cs" />
+    <Compile Include="Domain\DeleteBasketUseCase.cs" />
     <Compile Include="Infrastructure\DatabaseInitializer.cs" />
     <Compile Include="Infrastructure\BasketItemRepository.cs" />
     <Compile Include="Controllers\BasketController.cs" />
@@ -130,7 +130,8 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AddItemRequest.cs" />
-    <Compile Include="Models\BasketItem.cs" />
+    <Compile Include="Models\BasketItemResponse.cs" />
+    <Compile Include="Domain\Model\BasketItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,3 +1,4 @@
+using BasketService.Domain.Model;
 using System;
 
 namespace BasketService.Models

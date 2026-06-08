@@ -1,4 +1,4 @@
-using BasketService.Models;
+using BasketService.Domain.Model;
 using System.Collections.Generic;
 
 namespace BasketService.Domain.Ports.Spi

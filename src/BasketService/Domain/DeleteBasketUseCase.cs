@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 
 namespace BasketService.Domain
 {
-    public class DeleteBasket
+    public class DeleteBasketUseCase
     {
         private readonly IBasketItemRepository _repository;
 
-        public DeleteBasket(IBasketItemRepository repository)
+        public DeleteBasketUseCase(IBasketItemRepository repository)
         {
             _repository = repository;
         }

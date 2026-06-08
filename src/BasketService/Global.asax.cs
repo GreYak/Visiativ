@@ -20,9 +20,9 @@ namespace BasketService
             var builder = new ContainerBuilder();
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
             builder.RegisterType<BasketItemRepository>().As<IBasketItemRepository>().InstancePerRequest();
-            builder.RegisterType<GetBasket>().InstancePerRequest();
-            builder.RegisterType<AddItemToBasket>().InstancePerRequest();
-            builder.RegisterType<DeleteBasket>().InstancePerRequest();
+            builder.RegisterType<GetBasketUseCase>().InstancePerRequest();
+            builder.RegisterType<AddItemToBasketUseCase>().InstancePerRequest();
+            builder.RegisterType<DeleteBasketUseCase>().InstancePerRequest();
             var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 

@@ -1,15 +1,15 @@
 using BasketService.Domain.Ports.Spi;
-using BasketService.Models;
+using BasketService.Domain.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BasketService.Domain
 {
-    public class GetBasket
+    public class GetBasketUseCase
     {
         private readonly IBasketItemRepository _repository;
 
-        public GetBasket(IBasketItemRepository repository)
+        public GetBasketUseCase(IBasketItemRepository repository)
         {
             _repository = repository;
         }

@@ -1,7 +1,7 @@
 using BasketService.Controllers;
 using BasketService.Domain;
+using BasketService.Domain.Model;
 using BasketService.Domain.Ports.Spi;
-using BasketService.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -51,9 +51,9 @@ namespace BasketService.Tests
             {
                 if (serviceType != typeof(BasketController)) return null;
                 return new BasketController(
-                    new GetBasket(_repository),
-                    new AddItemToBasket(_repository),
-                    new DeleteBasket(_repository));
+                    new GetBasketUseCase(_repository),
+                    new AddItemToBasketUseCase(_repository),
+                    new DeleteBasketUseCase(_repository));
             }
 
             public IEnumerable<object> GetServices(Type serviceType)
