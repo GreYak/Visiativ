@@ -13,7 +13,6 @@
     <File Path="docs/quick-start.md" />
     <File Path="docs/apiservice.technical-documentation.md" />
     <File Path="docs/architecture.md" />
-    <File Path="docs/technical-documentation.md" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/BasketService.Tests/BasketService.Tests.csproj" />
