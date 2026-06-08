@@ -144,6 +144,16 @@ Vide le panier (supprime toutes les lignes).
 | 204 | Panier vidé |
 | 500 | Erreur technique |
 
+### Swagger UI
+
+Interface interactive disponible à tout moment (pas de restriction d'environnement) :
+
+```
+http://<basketservice>/swagger
+```
+
+La spec OpenAPI est embarquée directement dans la page (pas de fichier JSON séparé).
+
 ---
 
 ## 6. Gestion des erreurs

@@ -72,9 +72,9 @@ Le dashboard Aspire s'ouvre automatiquement dans le navigateur. Les URLs de chaq
 |---|---|---|
 | Dashboard Aspire | `http://localhost:18888` | — |
 | Visiativ.Web (frontend) | `http://localhost:5XXX` | — |
-| BFF (ApiService) | `http://localhost:5XXX` | `/scalar/v1` |
-| CatalogService | `http://localhost:5XXX` | `/openapi` |
-| BasketService | `http://localhost:8080` (Docker) | — *(stack legacy)* |
+| BFF (ApiService) | `http://localhost:5XXX` | `/swagger` |
+| CatalogService | `http://localhost:5XXX` | `/swagger` |
+| BasketService | `http://localhost:8080` (Docker) | `/swagger` |
 
 ---
 

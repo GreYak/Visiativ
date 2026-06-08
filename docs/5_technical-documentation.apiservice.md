@@ -146,12 +146,12 @@ Proxy vers `DELETE /api/basket` du BasketService.
 | 204 | Panier vidé |
 | 503 | BasketService indisponible |
 
-### OpenAPI / Scalar
+### Swagger UI
 
-Interface interactive Scalar disponible en mode développement :
+Interface interactive disponible en mode développement :
 
 ```
-http://<apiservice>/scalar/v1
+http://<apiservice>/swagger
 ```
 
 Spec OpenAPI brute : `/openapi/v1.json`

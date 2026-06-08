@@ -125,6 +125,7 @@
     <Compile Include="Infrastructure\DatabaseInitializer.cs" />
     <Compile Include="Infrastructure\BasketItemRepository.cs" />
     <Compile Include="Controllers\BasketController.cs" />
+    <Compile Include="Controllers\SwaggerController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

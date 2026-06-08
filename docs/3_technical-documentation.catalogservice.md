@@ -126,13 +126,15 @@ Retourne un produit par son identifiant.
 | 200 | Produit trouvé |
 | 404 `{ "Message": "Product '{id}' not found." }` | Produit inexistant |
 
-### OpenAPI
+### Swagger UI
 
-Documentation interactive disponible en mode développement :
+Interface interactive disponible en mode développement :
 
 ```
-http://<catalogservice>/openapi
+http://<catalogservice>/swagger
 ```
+
+Spec OpenAPI brute : `/openapi/v1.json`
 
 ---
 
