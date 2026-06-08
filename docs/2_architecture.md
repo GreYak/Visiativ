@@ -261,9 +261,6 @@ Le BasketService ne stocke que `ProductId` et `Quantity` — les informations pr
 
 ### Pistes d'amélioration
 
-- Ajouter une gestion de session (cookie ou JWT léger) pour isoler les paniers par utilisateur.
-- Introduire une réservation de stock dans CatalogService pour éliminer la race condition.
-- Ajouter un cache court terme (Redis ou in-memory) sur le `GET /products` dans le BFF pour réduire la dépendance synchrone au CatalogService lors de la consultation du panier.
-- Remplacer Mono/XSP4 par une migration vers .NET 8+ dans une démarche de modernisation progressive.
-- Centraliser le logging de BasketService vers OpenTelemetry pour une traçabilité unifiée dans le dashboard Aspire.
-- Ajouter des tests d'intégration end-to-end (AppHost Aspire + vrai SQL Server en test) avec `Aspire.Hosting.Testing`.
+- Ajouter une gestion de plusieurs paniers dans l'API
+- Introduire une réservation de stock dans CatalogService
+- Ajouter des tests d'intégration end-to-end (AppHost Aspire + vrai SQL Server en test) 
