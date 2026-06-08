@@ -10,7 +10,7 @@
 | Aspire workload | inclus dans .NET 10 SDK | `dotnet workload install aspire` |
 | Docker Desktop | 4.x (Linux containers) | https://www.docker.com/products/docker-desktop |
 | WSL 2 | activé | Paramètres Docker → *Use WSL 2 based engine* |
-| Visual Studio 2022 | 17.9+ | https://visualstudio.microsoft.com/ |
+| Visual Studio 2026 | dernière version | https://visualstudio.microsoft.com/ |
 
 > **Visual Studio Code** est également supporté avec l'extension C# DevKit et l'extension .NET Aspire.
 
@@ -52,7 +52,7 @@ Docker Desktop → Settings → General → "Use WSL 2 based engine" ✓
 
 ### 3. Ouvrir la solution
 
-Ouvrir `Visiativ.slnx` dans Visual Studio 2022.
+Ouvrir `Visiativ.slnx` dans Visual Studio 2026.
 
 ### 4. Définir le projet de démarrage
 
@@ -68,29 +68,13 @@ Au premier lancement, Docker télécharge l'image `mono:6.12` et build le conten
 
 Le dashboard Aspire s'ouvre automatiquement dans le navigateur. Les URLs de chaque service sont affichées :
 
-| Service | URL (exemple) |
-|---|---|
-| Dashboard Aspire | `http://localhost:18888` |
-| BFF (ApiService) | `http://localhost:5XXX` |
-| BFF — Swagger UI | `http://localhost:5XXX/swagger` |
-| CatalogService | `http://localhost:5XXX` |
-| BasketService | `http://localhost:8080` (via Docker) |
-
----
-
-## Explorer les APIs
-
-### Swagger UI — BFF (ApiService)
-
-En mode développement, une interface interactive **Scalar** est disponible sur le BFF à l'adresse :
-
-```
-http://localhost:5XXX/scalar/v1
-```
-
-Elle permet d'explorer et de tester tous les endpoints du BFF (`/products`, `/basket`, `/basket/items`) sans outil externe.
-
-> La spec OpenAPI brute est également accessible sur `/swagger/v1/swagger.json`.
+| Service | URL (exemple) | Explorer l'API |
+|---|---|---|
+| Dashboard Aspire | `http://localhost:18888` | — |
+| Visiativ.Web (frontend) | `http://localhost:5XXX` | — |
+| BFF (ApiService) | `http://localhost:5XXX` | `/scalar/v1` |
+| CatalogService | `http://localhost:5XXX` | `/openapi` |
+| BasketService | `http://localhost:8080` (Docker) | — *(stack legacy)* |
 
 ---
 
@@ -121,7 +105,7 @@ curl -X POST http://<bff>/basket/items \
      -H "Content-Type: application/json" \
      -d '{"productId": "<guid>", "quantity": 2}'
 
-# 3. Consulter le panier
+# 3. Consulter le panier (réponse enrichie avec les infos catalogue)
 curl http://<bff>/basket
 
 # 4. Vider le panier
