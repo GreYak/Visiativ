@@ -8,11 +8,11 @@
     <Project Path="src/Visiativ.Web/Visiativ.Web.csproj" />
   </Folder>
   <Folder Name="/docs/">
-    <File Path="docs/basketservice.technical-documentation.md" />
-    <File Path="docs/catalogservice.technical-documentation.md" />
-    <File Path="docs/quick-start.md" />
-    <File Path="docs/apiservice.technical-documentation.md" />
-    <File Path="docs/architecture.md" />
+    <File Path="docs/1_quick-start.md" />
+    <File Path="docs/2_architecture.md" />
+    <File Path="docs/3_technical-documentation.catalogservice.md" />
+    <File Path="docs/4_technical-documentation.basketservice.md" />
+    <File Path="docs/5_technical-documentation.apiservice.md" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/BasketService.Tests/BasketService.Tests.csproj" />

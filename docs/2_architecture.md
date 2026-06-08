@@ -6,20 +6,11 @@
 
 Mini application e-commerce permettant à un utilisateur de consulter un catalogue de produits, d'ajouter des articles à un panier et de visualiser son contenu. L'exercice démontre la cohabitation d'une **stack moderne** (ASP.NET Core 10) et d'une **stack legacy** (.NET Framework 4.8) au sein d'un même système orchestré.
 
-### Approche retenue — .NET Aspire + Docker
-
-[.NET Aspire](https://learn.microsoft.com/fr-fr/dotnet/aspire/get-started/aspire-overview) a été retenu comme solution d'orchestration locale pour les raisons suivantes :
-
-- **Service discovery automatique** : les services se référencent par nom (`http://catalogservice`, `http://basketservice`) sans configuration manuelle de ports.
-- **Provisioning des ressources** : le conteneur SQL Server (et ses deux bases) est déclaré dans l'AppHost et démarré automatiquement.
-- **Health checks et démarrage ordonné** : le BFF attend la disponibilité du CatalogService avant de démarrer (`WaitFor`).
-- **Dashboard de supervision intégré** : traces, logs et métriques centralisés via OpenTelemetry sans infrastructure supplémentaire.
-- **Gestion du service legacy** : BasketService est enregistré comme ressource Docker (`AddDockerfile`) — Aspire gère son cycle de vie comme n'importe quel service.
-- **Confort pour les développeurs** : n'importe quel développeur souhaitant explorer la solution n'a besoin que de Docker Desktop et du SDK .NET 10. Un seul F5 démarre l'intégralité de la stack (SQL Server, BasketService sous Mono, CatalogService, BFF, frontend). Pas de configuration manuelle de base de données, de ports ou de variables d'environnement.
-
 ---
 
-## Présentation des briques
+## Architecture
+
+## Liste des composants
 
 | Composant | Rôle | Technologie | Port local |
 |---|---|---|---|
@@ -32,7 +23,7 @@ Mini application e-commerce permettant à un utilisateur de consulter un catalog
 
 ---
 
-## Schéma global
+## Schéma d'architecture globale
 
 ```mermaid
 graph TB
@@ -56,6 +47,56 @@ graph TB
     Bas --> SQL
     Cat --> SQL
 ```
+
+## Architecture applicative
+
+### Structure de la solution
+
+```
+Visiativ/
+├── Visiativ.slnx                          # Solution Visual Studio (format .slnx)
+├── aspire.config.json                     # Configuration Aspire
+├── README.md                              # Point d'entrée documentation
+│
+├── docs/
+│   ├── architecture.md
+│   ├── quick-start.md
+│   ├── technical-documentation.md
+│   ├── technical-documentation.catalogservice.md
+│   ├── technical-documentation.basketservice.md
+│   └── technical-documentation.apiservice.md
+│
+├── src/
+│   ├── Visiativ.AppHost/                  # Orchestrateur Aspire
+│   │   └── AppHost.cs                     # Déclaration des ressources (SQL Server, services, Docker)
+│   │
+│   ├── Visiativ.ServiceDefaults/          # Bibliothèque partagée (net10)
+│   │   ├── Extensions.cs                  # AddServiceDefaults, UseExceptionHandlingMiddleware,
+│   │   │                                  # UseRequestLogging, MapDefaultEndpoints
+│   │   ├── Middlewares/
+│   │   │   ├── ExceptionHandlingMiddleware.cs  # Middleware catch-all partagé (log + JSON 500)
+│   │   │   └── RequestLoggingMiddleware.cs     # Log structuré de chaque requête HTTP entrante
+│   │   └── Networking/
+│   │       └── OutboundHttpLoggingHandler.cs   # DelegatingHandler : log des appels HTTP sortants
+│   │
+│   ├── CatalogService/                    # → voir technical-documentation.catalogservice.md
+│   ├── BasketService/                     # → voir technical-documentation.basketservice.md
+│   ├── Visiativ.ApiService/               # → voir technical-documentation.apiservice.md
+│   └── Visiativ.Web/                      # Frontend Blazor Server (net10)
+│
+└── tests/
+    ├── CatalogService.Tests/              # Tests intégration CatalogService (WebApplicationFactory)
+    ├── Visiativ.ApiService.Tests/         # Tests intégration BFF (WebApplicationFactory + NSubstitute)
+    ├── BasketService.Tests/               # Tests intégration BasketService (HttpServer WebAPI + NUnit)
+    └── Visiativ.Web.Tests/                # Tests composants Blazor (bUnit + NSubstitute)
+```
+
+### Documentation détaillée par service
+
+- [CatalogService](technical-documentation.catalogservice.md)
+- [BasketService](technical-documentation.basketservice.md)
+- [ApiService (BFF)](technical-documentation.apiservice.md)
+
 
 ### Dépendances entre composants
 
@@ -233,54 +274,8 @@ sequenceDiagram
 
 ---
 
-## Structure de la solution
 
-```
-Visiativ/
-├── Visiativ.slnx                          # Solution Visual Studio (format .slnx)
-├── aspire.config.json                     # Configuration Aspire
-├── README.md                              # Point d'entrée documentation
-│
-├── docs/
-│   ├── architecture.md
-│   ├── quick-start.md
-│   ├── technical-documentation.md
-│   ├── technical-documentation.catalogservice.md
-│   ├── technical-documentation.basketservice.md
-│   └── technical-documentation.apiservice.md
-│
-├── src/
-│   ├── Visiativ.AppHost/                  # Orchestrateur Aspire
-│   │   └── AppHost.cs                     # Déclaration des ressources (SQL Server, services, Docker)
-│   │
-│   ├── Visiativ.ServiceDefaults/          # Bibliothèque partagée (net10)
-│   │   ├── Extensions.cs                  # AddServiceDefaults, UseExceptionHandlingMiddleware,
-│   │   │                                  # UseRequestLogging, MapDefaultEndpoints
-│   │   ├── Middlewares/
-│   │   │   ├── ExceptionHandlingMiddleware.cs  # Middleware catch-all partagé (log + JSON 500)
-│   │   │   └── RequestLoggingMiddleware.cs     # Log structuré de chaque requête HTTP entrante
-│   │   └── Networking/
-│   │       └── OutboundHttpLoggingHandler.cs   # DelegatingHandler : log des appels HTTP sortants
-│   │
-│   ├── CatalogService/                    # → voir technical-documentation.catalogservice.md
-│   ├── BasketService/                     # → voir technical-documentation.basketservice.md
-│   ├── Visiativ.ApiService/               # → voir technical-documentation.apiservice.md
-│   └── Visiativ.Web/                      # Frontend Blazor Server (net10)
-│
-└── tests/
-    ├── CatalogService.Tests/              # Tests intégration CatalogService (WebApplicationFactory)
-    ├── Visiativ.ApiService.Tests/         # Tests intégration BFF (WebApplicationFactory + NSubstitute)
-    ├── BasketService.Tests/               # Tests intégration BasketService (HttpServer WebAPI + NUnit)
-    └── Visiativ.Web.Tests/                # Tests composants Blazor (bUnit + NSubstitute)
-```
 
-### Documentation détaillée par service
-
-- [CatalogService](technical-documentation.catalogservice.md)
-- [BasketService](technical-documentation.basketservice.md)
-- [ApiService (BFF)](technical-documentation.apiservice.md)
-
----
 
 ## Choix techniques et justifications
 
