@@ -167,7 +167,7 @@ namespace BasketService.Tests
                 var body = await response.Content.ReadAsStringAsync();
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(409));
-                Assert.That(body, Does.Contain("oversize").IgnoreCase);
+                Assert.That(body, Does.Contain("dépasse le stock maximum autorisé").IgnoreCase);
             }
         }
 
@@ -200,7 +200,7 @@ namespace BasketService.Tests
                 var body = await response.Content.ReadAsStringAsync();
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(409));
-                Assert.That(body, Does.Contain("oversize").IgnoreCase);
+                Assert.That(body, Does.Contain("dépasse le stock maximum autorisé").IgnoreCase);
             }
         }
     }

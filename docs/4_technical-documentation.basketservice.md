@@ -37,6 +37,8 @@ BasketService/
 ├── Domain/
 │   ├── Model/
 │   │   └── BasketItem.cs             # Modèle métier (ProductId, Quantity)
+│   ├── Exceptions/
+│   │   └── StockLimitExceededException.cs  # Données brutes du dépassement (FinalQuantity, LimitMax)
 │   ├── AddItemToBasketUseCase.cs     # Cas d'utilisation ajout (validation quantité + limitMax)
 │   ├── GetBasketUseCase.cs
 │   ├── DeleteBasketUseCase.cs
@@ -56,11 +58,12 @@ BasketService/
 ### Logique domaine — `AddItemToBasketUseCase`
 
 ```
-1. Valide Quantity > 0            → ArgumentException        → 400
+1. Valide Quantity > 0            → ArgumentException              → 400
 2. Lit l'item existant en base    (Get())
 3. Calcule la quantité finale     = existante + nouvelle
 4. Si limitMax défini
-   et finalQty > limitMax         → InvalidOperationException → 409
+   et finalQty > limitMax         → StockLimitExceededException    → 409
+   (message FR formé par le contrôleur, données brutes dans l'exception)
 5. Persiste via EnsureBasketItem  (MERGE SQL)
 ```
 
@@ -153,7 +156,7 @@ Ajoute ou met à jour un item. La quantité est **accumulée** si le produit est
 | 400 `"Requête invalide."` | Corps de requête null |
 | 400 `"Le paramètre limitMax doit être strictement positif."` | `limitMax <= 0` |
 | 400 `"La quantité doit être supérieure à zéro."` | `quantity <= 0` (validation domaine) |
-| 409 `{ "message": "Oversize the limit: final quantity (N) exceeds the maximum allowed (M)." }` | Quantité accumulée > `limitMax` |
+| 409 `{ "message": "La quantité finale (N) dépasse le stock maximum autorisé (M)." }` | Quantité accumulée > `limitMax` |
 | 500 `{ "status": 500, "error": "..." }` | Erreur technique |
 
 ### `DELETE /api/basket`

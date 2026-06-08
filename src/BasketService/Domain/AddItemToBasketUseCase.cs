@@ -1,5 +1,6 @@
-using BasketService.Domain.Ports.Spi;
+using BasketService.Domain.Exceptions;
 using BasketService.Domain.Model;
+using BasketService.Domain.Ports.Spi;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,8 +31,7 @@ namespace BasketService.Domain
                 : item.Quantity;
 
             if (limitMax.HasValue && finalQuantity > limitMax.Value)
-                throw new InvalidOperationException(
-                    $"Oversize the limit: final quantity ({finalQuantity}) exceeds the maximum allowed ({limitMax.Value}).");
+                throw new StockLimitExceededException(finalQuantity, limitMax.Value);
 
             var finalItem = new BasketItem(item.ProductId, finalQuantity);
 

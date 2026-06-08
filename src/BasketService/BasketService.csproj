@@ -119,6 +119,7 @@
     <Compile Include="Handlers\LoggingHandler.cs" />
     <Compile Include="Filters\GlobalExceptionFilter.cs" />
     <Compile Include="Domain\Ports\Spi\IBasketItemRepository.cs" />
+    <Compile Include="Domain\Exceptions\StockLimitExceededException.cs" />
     <Compile Include="Domain\GetBasketUseCase.cs" />
     <Compile Include="Domain\AddItemToBasketUseCase.cs" />
     <Compile Include="Domain\DeleteBasketUseCase.cs" />

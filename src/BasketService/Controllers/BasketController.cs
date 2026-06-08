@@ -1,4 +1,5 @@
 using BasketService.Domain;
+using BasketService.Domain.Exceptions;
 using BasketService.Domain.Model;
 using BasketService.Models;
 using System;
@@ -48,9 +49,12 @@ namespace BasketService.Controllers
                 await _addItemToBasket.HandleAsync(request.ToBasketItem(), request.LimitMax);
                 return Ok();
             }
-            catch (InvalidOperationException ex)
+            catch (StockLimitExceededException ex)
             {
-                return Content(HttpStatusCode.Conflict, new { message = ex.Message });
+                return Content(HttpStatusCode.Conflict, new
+                {
+                    message = $"La quantité finale ({ex.FinalQuantity}) dépasse le stock maximum autorisé ({ex.LimitMax})."
+                });
             }
             catch (ArgumentException ex)
             {
