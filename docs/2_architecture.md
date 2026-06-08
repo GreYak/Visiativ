@@ -135,17 +135,13 @@ sequenceDiagram
     Cat-->>BFF: 200 OK · ProductResponse[]
     BFF-->>Web: 200 OK · ProductResponse[]
     Web-->>User: Affiche la liste
-
-    note over BFF,Cat: En cas d'indisponibilité CatalogService
-    Cat--xBFF: Exception réseau → ServiceUnavailableException
-    BFF-->>Web: 503 Service Unavailable
 ```
 
 ---
 
 ### 2. Ajouter un produit au panier
 
-C'est le flux le plus riche : le BFF orchestre deux appels en séquence et gère tous les cas d'erreur métier.
+Le BFF orchestre deux appels en séquence : récupération du produit et du stock côté catalogue, puis ajout dans le panier.
 
 ```mermaid
 sequenceDiagram
@@ -157,53 +153,19 @@ sequenceDiagram
 
     User->>Web: Clique "Ajouter au panier" (productId, quantité)
     Web->>BFF: POST /basket/items {productId, quantity}
-
     BFF->>Cat: GET /products/{productId}
-
-    alt CatalogService indisponible
-        Cat--xBFF: Exception réseau → ServiceUnavailableException
-        BFF-->>Web: 503 Service Unavailable "CatalogService indisponible"
-
-    else Produit non trouvé
-        Cat-->>BFF: 404 Not Found → null
-        BFF-->>Web: 400 Bad Request "Le produit '{id}' est introuvable."
-
-    else Produit trouvé
-        Cat-->>BFF: 200 OK {id, name, description, price, stock}
-
-        alt Stock insuffisant (stock < quantité demandée)
-            BFF-->>Web: 400 Bad Request "Stock insuffisant. Disponible : N, demandé : M."
-
-        else Stock suffisant
-            BFF->>Bas: POST /api/basket/add {productId, quantity, limitMax: stock}
-
-            alt BasketService indisponible
-                Bas--xBFF: Exception réseau → ServiceUnavailableException
-                BFF-->>Web: 503 Service Unavailable "BasketService indisponible"
-
-            else Quantité invalide (≤ 0, rejeté par la couche domaine)
-                Bas-->>BFF: 400 Bad Request → RemoteValidationException
-                BFF-->>Web: 400 Bad Request (message propagé)
-
-            else Dépassement du stock accumulé (panier existant + nouvelle qté > stock)
-                Bas-->>BFF: 409 Conflict → RemoteConflictException
-                BFF-->>Web: 409 Conflict
-                Web-->>User: "Dépassement du stock : la quantité totale dépasserait le stock disponible."
-
-            else Ajout réussi
-                Bas-->>BFF: 200 OK
-                BFF-->>Web: 200 OK
-                Web-->>User: Confirmation ajout
-            end
-        end
-    end
+    Cat-->>BFF: 200 OK {id, name, description, price, stock}
+    BFF->>Bas: POST /api/basket/add {productId, quantity, limitMax: stock}
+    Bas-->>BFF: 200 OK
+    BFF-->>Web: 200 OK
+    Web-->>User: Confirmation ajout
 ```
 
 ---
 
 ### 3. Consulter le panier
 
-Le BFF consolide les données du panier (ProductId + Quantity) avec le catalogue (Name, Description, Price, Stock) pour construire une vue enrichie. Si un article du panier n'est plus référencé dans le catalogue, il est ignoré et une réponse partielle est retournée.
+Le BFF appelle les deux services en parallèle, puis consolide les résultats par jointure sur `ProductId`.
 
 ```mermaid
 sequenceDiagram
@@ -215,34 +177,13 @@ sequenceDiagram
 
     User->>Web: Ouvre le panier
     Web->>BFF: GET /basket
-
     BFF->>Bas: GET /api/basket
     BFF->>Cat: GET /products
-
-    alt BasketService indisponible
-        Bas--xBFF: Exception réseau → ServiceUnavailableException
-        BFF-->>Web: 503 Service Unavailable
-
-    else CatalogService indisponible
-        Cat--xBFF: Exception réseau → ServiceUnavailableException
-        BFF-->>Web: 503 Service Unavailable
-
-    else Les deux services répondent
-        Bas-->>BFF: 200 OK · BasketItem[] (ProductId, Quantity)
-        Cat-->>BFF: 200 OK · ProductResponse[]
-
-        note over BFF: Consolidation : jointure sur ProductId
-        note over BFF: Items absents du catalogue → ignorés
-
-        alt Tous les articles trouvés dans le catalogue
-            BFF-->>Web: 200 OK · BasketItemDto[]
-            Web-->>User: Affiche le panier
-
-        else Un ou plusieurs articles absents du catalogue
-            BFF-->>Web: 207 Multi-Status · BasketItemDto[] (articles trouvés uniquement)
-            Web-->>User: Affiche le panier + avertissement "Certains items ont été retirés du panier pour épuisement de stock"
-        end
-    end
+    Bas-->>BFF: 200 OK · BasketItem[] (ProductId, Quantity)
+    Cat-->>BFF: 200 OK · ProductResponse[]
+    note over BFF: Jointure sur ProductId → BasketItemDto[]
+    BFF-->>Web: 200 OK · BasketItemDto[]
+    Web-->>User: Affiche le panier
 ```
 
 ---
@@ -259,16 +200,9 @@ sequenceDiagram
     User->>Web: Clique "Vider le panier"
     Web->>BFF: DELETE /basket
     BFF->>Bas: DELETE /api/basket
-
-    alt BasketService indisponible
-        Bas--xBFF: Exception réseau → ServiceUnavailableException
-        BFF-->>Web: 503 Service Unavailable
-
-    else Vidage réussi
-        Bas-->>BFF: 204 No Content
-        BFF-->>Web: 204 No Content
-        Web-->>User: Panier vide affiché
-    end
+    Bas-->>BFF: 204 No Content
+    BFF-->>Web: 204 No Content
+    Web-->>User: Panier vide affiché
 ```
 
 ---
