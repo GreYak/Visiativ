@@ -39,13 +39,17 @@ namespace BasketService.Controllers
             if (request == null)
                 return BadRequest("Requête invalide.");
 
-            if (request.LimitMax.HasValue && request.LimitMax.Value < 0)
-                return BadRequest("Le paramètre limitMax doit être positif.");
+            if (request.LimitMax.HasValue && request.LimitMax.Value <= 0)
+                return BadRequest("Le paramètre limitMax doit être strictement positif.");
 
             try
             {
                 await _addItemToBasket.HandleAsync(request.ToBasketItem(), request.LimitMax);
                 return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Content(HttpStatusCode.Conflict, new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {

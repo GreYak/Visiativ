@@ -30,7 +30,7 @@ namespace BasketService.Domain
                 : item.Quantity;
 
             if (limitMax.HasValue && finalQuantity > limitMax.Value)
-                throw new ArgumentException(
+                throw new InvalidOperationException(
                     $"Oversize the limit: final quantity ({finalQuantity}) exceeds the maximum allowed ({limitMax.Value}).");
 
             var finalItem = new BasketItem(item.ProductId, item.Name, item.Price, finalQuantity);

@@ -144,6 +144,19 @@ namespace BasketService.Tests
         }
 
         [Test]
+        public async Task Add_WithZeroLimitMax_Returns400()
+        {
+            var repo = new InMemoryBasketItemRepository();
+
+            using (var client = CreateClient(repo))
+            {
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Laptop", 999.99m, 1), limitMax: 0);
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            }
+        }
+
+        [Test]
         public async Task Add_WithLimitMax_WhenNewItemIsWithinLimit_Returns200()
         {
             var repo = new InMemoryBasketItemRepository();
@@ -159,7 +172,7 @@ namespace BasketService.Tests
         }
 
         [Test]
-        public async Task Add_WithLimitMax_WhenNewItemExceedsLimit_Returns400()
+        public async Task Add_WithLimitMax_WhenNewItemExceedsLimit_Returns409()
         {
             var repo = new InMemoryBasketItemRepository();
 
@@ -168,7 +181,7 @@ namespace BasketService.Tests
                 var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Laptop", 999.99m, 5), limitMax: 3);
                 var body = await response.Content.ReadAsStringAsync();
 
-                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+                Assert.That((int)response.StatusCode, Is.EqualTo(409));
                 Assert.That(body, Does.Contain("oversize").IgnoreCase);
             }
         }
@@ -190,7 +203,7 @@ namespace BasketService.Tests
         }
 
         [Test]
-        public async Task Add_WithLimitMax_WhenAccumulatedQuantityExceedsLimit_Returns400()
+        public async Task Add_WithLimitMax_WhenAccumulatedQuantityExceedsLimit_Returns409()
         {
             var repo = new InMemoryBasketItemRepository();
             var productId = Guid.NewGuid();
@@ -201,7 +214,7 @@ namespace BasketService.Tests
                 var response = await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 3), limitMax: 4);
                 var body = await response.Content.ReadAsStringAsync();
 
-                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+                Assert.That((int)response.StatusCode, Is.EqualTo(409));
                 Assert.That(body, Does.Contain("oversize").IgnoreCase);
             }
         }
