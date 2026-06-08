@@ -142,4 +142,27 @@ public class ProductsPageTests
         cut.WaitForAssertion(() =>
             Assert.That(cut.Find(".alert-danger").TextContent, Does.Contain("Erreur")));
     }
+
+    [Test]
+    public void BoutonAdd_AfficheDepassementDuStock_Si409()
+    {
+        api.GetProductsAsync(default).ReturnsForAnyArgs([ProductAvecStock(stock: 5)]);
+        api.AddItemAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+           .Returns(new HttpResponseMessage(HttpStatusCode.Conflict)
+           {
+               Content = new StringContent("{\"message\":\"Oversize the limit: final quantity (7) exceeds the maximum allowed (5).\"}")
+           });
+
+        var cut = ctx.RenderComponent<Products>();
+        cut.WaitForAssertion(() => Assert.That(cut.FindAll("tbody tr"), Has.Count.EqualTo(1)));
+
+        cut.Find("button.btn-outline-primary").Click();
+        cut.WaitForAssertion(() => Assert.That(cut.Markup, Does.Contain("Add 1")));
+
+        cut.Find("button.btn-success").Click();
+
+        cut.WaitForAssertion(() =>
+            Assert.That(cut.Find(".alert-danger").TextContent,
+                Does.Contain("dépassement du stock").IgnoreCase));
+    }
 }

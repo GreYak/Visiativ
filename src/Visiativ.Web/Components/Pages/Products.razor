@@ -120,6 +120,12 @@ else
                 quantities[productId] = 0;
                 successMessage = $"✓ Ajouté au panier ({qty} article{(qty > 1 ? "s" : "")})";
             }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                errorMessage = "Dépassement du stock : la quantité totale dans le panier dépasserait le stock disponible.";
+                stocks[productId]    += qty;
+                quantities[productId] = 0;
+            }
             else
             {
                 var body = await response.Content.ReadAsStringAsync();
