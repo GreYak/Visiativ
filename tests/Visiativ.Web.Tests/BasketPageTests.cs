@@ -88,11 +88,15 @@ public class BasketPageTests
     }
 
     [Test]
-    public void BoutonPayer_VidePanier_SiApiOk()
+    public void BoutonPayer_VidePanier_EtAfficheNotification_SiApiOk()
     {
         api.GetBasketAsync(default).ReturnsForAnyArgs(DeuxArticles());
-        api.ClearBasketAsync(Arg.Any<CancellationToken>())
-           .Returns(new HttpResponseMessage(HttpStatusCode.OK));
+        // Laptop ×1 = 999.99 + Souris ×2 = 59.98 → total = 1059.97
+        api.PayBasketAsync(Arg.Any<CancellationToken>())
+           .Returns(new HttpResponseMessage(HttpStatusCode.OK)
+           {
+               Content = new StringContent("{\"total\":1059.97}", System.Text.Encoding.UTF8, "application/json")
+           });
 
         var cut = ctx.RenderComponent<Basket>();
         cut.WaitForAssertion(() => Assert.That(cut.FindAll("tbody tr"), Has.Count.EqualTo(2)));
@@ -100,7 +104,46 @@ public class BasketPageTests
         cut.Find("button.btn-success").Click();
 
         cut.WaitForAssertion(() =>
-            Assert.That(cut.Markup, Does.Contain("Votre panier est vide")));
+        {
+            Assert.That(cut.Markup, Does.Contain("Votre panier est vide"));
+            Assert.That(cut.Find(".alert-success").TextContent, Does.Contain("Paiement de").And.Contain("€ effectué"));
+        });
+    }
+
+    [Test]
+    public void BoutonPayer_AfficheErreur_SiStockInsuffisant()
+    {
+        api.GetBasketAsync(default).ReturnsForAnyArgs(DeuxArticles());
+        api.PayBasketAsync(Arg.Any<CancellationToken>())
+           .Returns(new HttpResponseMessage(HttpStatusCode.BadRequest));
+
+        var cut = ctx.RenderComponent<Basket>();
+        cut.WaitForAssertion(() => Assert.That(cut.FindAll("tbody tr"), Has.Count.EqualTo(2)));
+
+        cut.Find("button.btn-success").Click();
+
+        cut.WaitForAssertion(() =>
+            Assert.That(cut.Find(".alert-danger").TextContent,
+                Does.Contain("Erreur lors du paiement")));
+        // Le panier ne doit pas être vidé
+        Assert.That(cut.FindAll("tbody tr"), Has.Count.EqualTo(2));
+    }
+
+    [Test]
+    public void BoutonPayer_AfficheErreur_SiServiceIndisponible()
+    {
+        api.GetBasketAsync(default).ReturnsForAnyArgs(DeuxArticles());
+        api.PayBasketAsync(Arg.Any<CancellationToken>())
+           .Returns(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+
+        var cut = ctx.RenderComponent<Basket>();
+        cut.WaitForAssertion(() => Assert.That(cut.FindAll("tbody tr"), Has.Count.EqualTo(2)));
+
+        cut.Find("button.btn-success").Click();
+
+        cut.WaitForAssertion(() =>
+            Assert.That(cut.Find(".alert-danger").TextContent,
+                Does.Contain("Erreur lors du paiement")));
     }
 
     [Test]

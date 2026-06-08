@@ -184,7 +184,7 @@ La spec OpenAPI est embarquée directement dans la page (pas de fichier JSON sé
 
 | Mécanisme | Portée | Comportement |
 |---|---|---|
-| `BasketController` (try/catch inline) | `InvalidOperationException` → 409, `ArgumentException` → 400 | Erreurs métier gérées explicitement |
+| `BasketController` (try/catch inline) | `StockLimitExceededException` → 409, `ArgumentException` → 400 | Erreurs métier gérées explicitement |
 | `GlobalExceptionFilter` | Toute exception non gérée | Log `System.Diagnostics.Trace` + JSON `{ status: 500, error }` |
 
 Le `GlobalExceptionFilter` est un `ExceptionFilterAttribute` enregistré globalement dans `WebApiConfig.Register()`.

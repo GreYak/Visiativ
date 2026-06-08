@@ -254,6 +254,39 @@ sequenceDiagram
 
 ---
 
+### 5. Payer le panier
+
+Le BFF valide que tous les produits du panier existent dans le catalogue et que les quantités sont dans le stock, calcule le total, puis vide le panier.
+
+```mermaid
+sequenceDiagram
+    actor User as Utilisateur
+    participant Web as Visiativ.Web
+    participant BFF as ApiService (BFF)
+    participant Bas as BasketService
+    participant Cat as CatalogService
+
+    User->>Web: Clique "Payer"
+    Web->>BFF: POST /basket/pay
+
+    BFF->>Bas: GET /api/basket
+    BFF->>Cat: GET /products
+    Bas-->>BFF: 200 OK · BasketItem[] (ProductId, Quantity)
+    Cat-->>BFF: 200 OK · ProductResponse[]
+
+    note over BFF: Jointure — tous les produits doivent exister
+    note over BFF: Vérification stock : quantity ≤ stock pour chaque ligne
+    note over BFF: Calcul du total : Σ (quantity × price)
+
+    BFF->>Bas: DELETE /api/basket
+    Bas-->>BFF: 204 No Content
+
+    BFF-->>Web: 200 OK · PaymentDto { total }
+    Web-->>User: "Paiement de xxx€ effectué"
+```
+
+---
+
 
 
 

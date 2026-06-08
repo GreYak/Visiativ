@@ -8,6 +8,7 @@ public interface IVisiativApiClient
     Task<BasketResult> GetBasketAsync(CancellationToken cancellationToken = default);
     Task<HttpResponseMessage> AddItemAsync(Guid productId, int quantity, CancellationToken cancellationToken = default);
     Task<HttpResponseMessage> ClearBasketAsync(CancellationToken cancellationToken = default);
+    Task<HttpResponseMessage> PayBasketAsync(CancellationToken cancellationToken = default);
 }
 
 public class VisiativApiClient(HttpClient httpClient) : IVisiativApiClient
@@ -30,8 +31,12 @@ public class VisiativApiClient(HttpClient httpClient) : IVisiativApiClient
 
     public async Task<HttpResponseMessage> ClearBasketAsync(CancellationToken cancellationToken = default)
         => await httpClient.DeleteAsync("/basket", cancellationToken);
+
+    public async Task<HttpResponseMessage> PayBasketAsync(CancellationToken cancellationToken = default)
+        => await httpClient.PostAsync("/basket/pay", null, cancellationToken);
 }
 
 public record ProductResponse(Guid Id, string Name, string Description, decimal Price, int Stock);
 public record BasketItemResponse(Guid ProductId, string Name, string Description, decimal Price, int Quantity, int Stock);
 public record BasketResult(BasketItemResponse[] Items, bool IsPartial);
+public record PaymentResponse(decimal Total);

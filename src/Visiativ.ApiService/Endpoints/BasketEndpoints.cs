@@ -2,7 +2,6 @@ using Visiativ.ApiService.Abstractions;
 using Visiativ.ApiService.Clients;
 using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
-using System.Net;
 
 namespace Visiativ.ApiService.Endpoints;
 
@@ -15,37 +14,17 @@ public static class BasketEndpoints
         // GET /basket
         group.MapGet("/", async (IBasketClient basket, ICatalogClient catalog, CancellationToken ct) =>
         {
-            // 1. Récupération des entrées panier (ProductId + Quantity)
-            IEnumerable<BasketItemExt> entries;
-            try { entries = await basket.GetBasketAsync(ct); }
+            List<BasketItemDto> dtos;
+            bool isPartial;
+            try
+            {
+                (dtos, isPartial) = await FetchAndJoinAsync(basket, catalog, ct);
+            }
             catch (ServiceUnavailableException ex)
             {
                 return Results.Problem(
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: $"Le service '{ex.ServiceName}' est temporairement indisponible.");
-            }
-
-            // 2. Récupération du catalogue pour enrichir les entrées
-            IEnumerable<ProductExt> products;
-            try { products = await catalog.GetAllProductsAsync(ct); }
-            catch (ServiceUnavailableException ex)
-            {
-                return Results.Problem(
-                    statusCode: StatusCodes.Status503ServiceUnavailable,
-                    title: $"Le service '{ex.ServiceName}' est temporairement indisponible.");
-            }
-
-            // 3. Consolidation : les items absents du catalogue sont ignorés (207 si au moins un)
-            var productMap = products.ToDictionary(p => p.Id);
-            var dtos       = new List<BasketItemDto>();
-            var isPartial  = false;
-
-            foreach (var item in entries)
-            {
-                if (productMap.TryGetValue(item.ProductId, out var product))
-                    dtos.Add(BasketItemDto.From(item, product));
-                else
-                    isPartial = true;
             }
 
             return isPartial
@@ -136,5 +115,82 @@ public static class BasketEndpoints
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status409Conflict)
         .Produces(StatusCodes.Status503ServiceUnavailable);
+
+        // POST /basket/pay
+        group.MapPost("/pay", async (IBasketClient basket, ICatalogClient catalog, CancellationToken ct) =>
+        {
+            // 1. Récupération et consolidation panier + catalogue
+            List<BasketItemDto> items;
+            bool isPartial;
+            try
+            {
+                (items, isPartial) = await FetchAndJoinAsync(basket, catalog, ct);
+            }
+            catch (ServiceUnavailableException ex)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: $"Le service '{ex.ServiceName}' est temporairement indisponible.");
+            }
+
+            // 2. Tous les produits du panier doivent exister dans le catalogue
+            if (isPartial)
+                return Results.BadRequest(
+                    "Un ou plusieurs articles du panier sont introuvables dans le catalogue.");
+
+            // 3. Vérification des stocks — chaque quantité doit rester dans le stock disponible
+            var horsStock = items.FirstOrDefault(i => i.Quantity > i.Stock);
+            if (horsStock is not null)
+                return Results.BadRequest(
+                    $"Stock insuffisant pour '{horsStock.Name}' : demandé {horsStock.Quantity}, disponible {horsStock.Stock}.");
+
+            // 4. Calcul du montant total
+            var total = items.Sum(i => i.Quantity * i.Price);
+
+            // 5. Vider le panier — le paiement est considéré comme effectué
+            try
+            {
+                await basket.ClearBasketAsync(ct);
+            }
+            catch (ServiceUnavailableException ex)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: $"Le service '{ex.ServiceName}' est temporairement indisponible.");
+            }
+
+            return Results.Ok(new PaymentDto(total));
+        })
+        .WithName("BFF_PayBasket")
+        .WithSummary("Valide le panier, calcule le total et vide le panier.")
+        .Produces<PaymentDto>()
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status503ServiceUnavailable);
+    }
+
+    /// <summary>
+    /// Récupère les articles du panier et les produits du catalogue, puis les consolide en <see cref="BasketItemDto"/>.
+    /// Les articles dont le <c>ProductId</c> est absent du catalogue sont ignorés (<paramref name="isPartial"/> = <c>true</c>).
+    /// Peut lever <see cref="ServiceUnavailableException"/> si l'un des services est indisponible.
+    /// </summary>
+    private static async Task<(List<BasketItemDto> Items, bool IsPartial)> FetchAndJoinAsync(
+        IBasketClient basket, ICatalogClient catalog, CancellationToken ct)
+    {
+        var entries  = await basket.GetBasketAsync(ct);
+        var products = await catalog.GetAllProductsAsync(ct);
+
+        var productMap = products.ToDictionary(p => p.Id);
+        var dtos       = new List<BasketItemDto>();
+        var isPartial  = false;
+
+        foreach (var item in entries)
+        {
+            if (productMap.TryGetValue(item.ProductId, out var product))
+                dtos.Add(BasketItemDto.From(item, product));
+            else
+                isPartial = true;
+        }
+
+        return (dtos, isPartial);
     }
 }

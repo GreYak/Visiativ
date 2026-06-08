@@ -1,12 +1,20 @@
 @page "/basket"
 @rendermode InteractiveServer
 
+@using System.Net.Http.Json
 @inject IVisiativApiClient Api
 
 <PageTitle>Votre panier</PageTitle>
 
 <h1>Votre panier</h1>
 
+@if (paymentSuccessMessage is not null)
+{
+    <div class="alert alert-success alert-dismissible">
+        @paymentSuccessMessage
+        <button type="button" class="btn-close" @onclick="() => paymentSuccessMessage = null"></button>
+    </div>
+}
 @if (partialWarning)
 {
     <div class="alert alert-warning alert-dismissible">
@@ -62,6 +70,7 @@ else
 @code {
     private BasketItemResponse[]? items;
     private string? errorMessage;
+    private string? paymentSuccessMessage;
     private bool isProcessing;
     private bool partialWarning;
 
@@ -102,12 +111,19 @@ else
     private async Task Checkout()
     {
         errorMessage = null;
+        paymentSuccessMessage = null;
         isProcessing = true;
-        var response = await Api.ClearBasketAsync();
+        var response = await Api.PayBasketAsync();
         if (response.IsSuccessStatusCode)
+        {
+            var payment = await response.Content.ReadFromJsonAsync<PaymentResponse>();
             items = [];
+            paymentSuccessMessage = $"Paiement de {payment!.Total:F2} € effectué.";
+        }
         else
-            errorMessage = "Erreur lors du paiement.";
+        {
+            errorMessage = "Erreur lors du paiement : stock insuffisant ou service indisponible.";
+        }
         isProcessing = false;
     }
 }

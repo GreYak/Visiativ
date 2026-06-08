@@ -37,7 +37,7 @@ Visiativ.ApiService/
 │   ├── ProductExt.cs                 # Réponse CatalogService (contrat externe)
 │   └── AddBasketItemExt.cs           # Corps POST /api/basket/add (contrat externe)
 ├── Endpoints/
-│   ├── BasketEndpoints.cs            # GET/DELETE /basket, POST /basket/items
+│   ├── BasketEndpoints.cs            # GET/DELETE /basket, POST /basket/items, POST /basket/pay
 │   └── CatalogEndpoints.cs           # GET /products
 ├── Exceptions/
 │   ├── ServiceUnavailableException.cs
@@ -46,7 +46,8 @@ Visiativ.ApiService/
 └── Models/
     ├── AddItemRequestDto.cs          # Corps POST /basket/items reçu du frontend
     ├── ProductDto.cs                 # Produit exposé au frontend
-    └── BasketItemDto.cs              # Vue consolidée panier + catalogue exposée au frontend
+    ├── BasketItemDto.cs              # Vue consolidée panier + catalogue exposée au frontend
+    └── PaymentDto.cs                 # Résultat POST /basket/pay : { total }
 ```
 
 ### Clients HTTP
@@ -80,6 +81,7 @@ Le BFF n'a pas de base de données propre. Les modèles sont séparés en deux c
 | `AddItemRequestDto` | Corps de `POST /basket/items` reçu du frontend : `{ productId, quantity }` |
 | `ProductDto` | Produit exposé au frontend : `{ id, name, description, price, stock }` |
 | `BasketItemDto` | Vue consolidée panier + catalogue exposée au frontend |
+| `PaymentDto` | Résultat de `POST /basket/pay` : `{ total }` |
 
 **Ext (`/Clients`) — contrats BFF ↔ services externes**
 
@@ -159,6 +161,23 @@ Proxy vers `DELETE /api/basket` du BasketService.
 | 204 | Panier vidé |
 | 503 | BasketService indisponible |
 
+### `POST /basket/pay`
+
+Validation et paiement simulé du panier en 5 étapes :
+
+1. `GET /api/basket` → BasketService — articles du panier
+2. `GET /products` → CatalogService — catalogue complet
+3. Jointure : tous les produits du panier doivent exister (`400` sinon)
+4. Vérification des stocks : `quantity ≤ stock` pour chaque ligne (`400` sinon)
+5. Calcul du total (`Σ quantity × price`), puis `DELETE /api/basket` → panier vidé
+
+| Code | Description |
+|---|---|
+| 200 · `PaymentDto { total }` | Paiement validé, panier vidé |
+| 400 | Un ou plusieurs produits absents du catalogue |
+| 400 | Stock insuffisant pour au moins un article |
+| 503 | BasketService ou CatalogService indisponible |
+
 ### Swagger UI
 
 Interface interactive disponible en mode développement :
@@ -231,7 +250,8 @@ Visiativ.ApiService.Tests/
 ├── GetProductTests.cs                   # GET /products
 ├── AddItemToBasketTests.cs              # POST /basket/items
 ├── GetBasketTests.cs                    # GET /basket
-└── ClearBasketTests.cs                  # DELETE /basket
+├── ClearBasketTests.cs                  # DELETE /basket
+└── PayBasketTests.cs                    # POST /basket/pay
 ```
 
 ### Frontend Blazor — `Visiativ.Web.Tests`
