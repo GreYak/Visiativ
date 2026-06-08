@@ -1,6 +1,7 @@
 using Visiativ.ApiService.Abstractions;
 using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
+using System.Net;
 
 namespace Visiativ.ApiService.Endpoints;
 
@@ -77,12 +78,16 @@ public static class BasketEndpoints
                 return Results.BadRequest(
                     $"Stock insuffisant. Disponible : {product.Stock}, demandé : {req.Quantity}.");
 
-            // 3. Ajout au panier — peut échouer si BasketService est indisponible
-            //    ou rejeter l'item (quantité invalide → RemoteValidationException)
+            // 3. Ajout au panier — limitMax = stock catalogue pour éviter de dépasser le stock
+            //    disponible après accumulation des quantités déjà en panier.
             var item = new BasketItem(product.Id, product.Name, product.Price, req.Quantity);
             try
             {
-                await basket.AddItemAsync(item, ct);
+                await basket.AddItemAsync(item, limitMax: product.Stock, ct);
+            }
+            catch (RemoteConflictException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
             }
             catch (RemoteValidationException ex)
             {
@@ -101,6 +106,7 @@ public static class BasketEndpoints
         .WithSummary("Ajoute un produit au panier après vérification du stock.")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status409Conflict)
         .Produces(StatusCodes.Status503ServiceUnavailable);
     }
 }

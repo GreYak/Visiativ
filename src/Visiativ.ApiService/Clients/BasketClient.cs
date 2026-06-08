@@ -1,3 +1,4 @@
+using System.Net;
 using Visiativ.ApiService.Abstractions;
 using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
@@ -19,7 +20,7 @@ public class BasketClient(HttpClient http) : IBasketClient
         }
     }
 
-    public async Task AddItemAsync(BasketItem item, CancellationToken ct = default)
+    public async Task AddItemAsync(BasketItem item, int? limitMax = null, CancellationToken ct = default)
     {
         HttpResponseMessage response;
         try
@@ -30,7 +31,15 @@ public class BasketClient(HttpClient http) : IBasketClient
             // → Socket.Receive(non-bloquant) → WOULDBLOCK.
             // Fix : StringContent + ContentLength explicite → body envoyé en une seule fois
             // avec header Content-Length (pas de chunked), + désactivation Expect: 100-continue.
-            var json = System.Text.Json.JsonSerializer.Serialize(item);
+            var body = new
+            {
+                productId = item.ProductId,
+                name      = item.Name,
+                price     = item.Price,
+                quantity  = item.Quantity,
+                limitMax
+            };
+            var json  = System.Text.Json.JsonSerializer.Serialize(body);
             var bytes = System.Text.Encoding.UTF8.GetBytes(json);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             content.Headers.ContentLength = bytes.Length;
@@ -49,10 +58,16 @@ public class BasketClient(HttpClient http) : IBasketClient
             throw new ServiceUnavailableException("BasketService");
         }
 
-        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        if (response.StatusCode == HttpStatusCode.BadRequest)
         {
             var message = await response.Content.ReadAsStringAsync(ct);
             throw new RemoteValidationException(message);
+        }
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            var message = await response.Content.ReadAsStringAsync(ct);
+            throw new RemoteConflictException(message);
         }
 
         if (!response.IsSuccessStatusCode)

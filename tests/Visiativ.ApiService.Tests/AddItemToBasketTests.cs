@@ -39,7 +39,7 @@ public class AddItemToBasketTests
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
             .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
         _factory.BasketClient
-            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<CancellationToken>())
+            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         var response = await _client.PostAsJsonAsync("/basket/items",
@@ -101,7 +101,7 @@ public class AddItemToBasketTests
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
             .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
         _factory.BasketClient
-            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<CancellationToken>())
+            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(
                 new RemoteValidationException("La quantité doit être supérieure à zéro.")));
 
@@ -109,6 +109,27 @@ public class AddItemToBasketTests
             new AddItemRequest(productId, Quantity: 3));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    /// <summary>
+    /// Le BasketService indique que la quantité accumulée dépasse le stock : le BFF propage le 409.
+    /// </summary>
+    [Test]
+    public async Task Returns409_WhenBasketRejectsItem_DueToStockLimitExceeded()
+    {
+        var productId = Guid.NewGuid();
+        _factory.CatalogClient
+            .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
+            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 5));
+        _factory.BasketClient
+            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(
+                new RemoteConflictException("Oversize the limit: final quantity (7) exceeds the maximum allowed (5).")));
+
+        var response = await _client.PostAsJsonAsync("/basket/items",
+            new AddItemRequest(productId, Quantity: 3));
+
+        Assert.That((int)response.StatusCode, Is.EqualTo(409));
     }
 
     [Test]
@@ -134,7 +155,7 @@ public class AddItemToBasketTests
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
             .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
         _factory.BasketClient
-            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<CancellationToken>())
+            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(new ServiceUnavailableException("BasketService")));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
