@@ -122,6 +122,8 @@ graph LR
 
 ### 1. Consulter le catalogue produits
 
+Proxy transparent : le BFF relaie la requête au CatalogService et retourne la liste triée par nom.
+
 ```mermaid
 sequenceDiagram
     actor User as Utilisateur
@@ -189,6 +191,8 @@ sequenceDiagram
 ---
 
 ### 4. Vider le panier
+
+Proxy transparent : le BFF relaie la demande au BasketService qui supprime toutes les lignes du panier.
 
 ```mermaid
 sequenceDiagram
