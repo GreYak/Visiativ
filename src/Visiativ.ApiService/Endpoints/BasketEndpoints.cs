@@ -1,4 +1,5 @@
 using Visiativ.ApiService.Abstractions;
+using Visiativ.ApiService.Clients;
 using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
 using System.Net;
@@ -15,7 +16,7 @@ public static class BasketEndpoints
         group.MapGet("/", async (IBasketClient basket, ICatalogClient catalog, CancellationToken ct) =>
         {
             // 1. Récupération des entrées panier (ProductId + Quantity)
-            IEnumerable<BasketItem> entries;
+            IEnumerable<BasketItemExt> entries;
             try { entries = await basket.GetBasketAsync(ct); }
             catch (ServiceUnavailableException ex)
             {
@@ -25,7 +26,7 @@ public static class BasketEndpoints
             }
 
             // 2. Récupération du catalogue pour enrichir les entrées
-            IEnumerable<ProductResponse> products;
+            IEnumerable<ProductExt> products;
             try { products = await catalog.GetAllProductsAsync(ct); }
             catch (ServiceUnavailableException ex)
             {
@@ -42,13 +43,7 @@ public static class BasketEndpoints
             foreach (var item in entries)
             {
                 if (productMap.TryGetValue(item.ProductId, out var product))
-                    dtos.Add(new BasketItemDto(
-                        ProductId:   item.ProductId,
-                        Name:        product.Name,
-                        Description: product.Description,
-                        Price:       product.Price,
-                        Quantity:    item.Quantity,
-                        Stock:       product.Stock));
+                    dtos.Add(BasketItemDto.From(item, product));
                 else
                     isPartial = true;
             }
@@ -85,13 +80,13 @@ public static class BasketEndpoints
 
         // POST /basket/items
         group.MapPost("/items", async (
-            AddItemRequest req,
+            AddItemRequestDto req,
             ICatalogClient catalog,
             IBasketClient basket,
             CancellationToken ct) =>
         {
             // 1. Récupération du produit — peut échouer si CatalogService est indisponible
-            ProductResponse? product;
+            ProductExt? product;
             try
             {
                 product = await catalog.GetProductByIdAsync(req.ProductId, ct);
@@ -113,7 +108,7 @@ public static class BasketEndpoints
 
             // 3. Ajout au panier — limitMax = stock catalogue pour éviter de dépasser le stock
             //    disponible après accumulation des quantités déjà en panier.
-            var item = new BasketItem(product.Id, req.Quantity);
+            var item = new BasketItemExt(product.Id, req.Quantity);
             try
             {
                 await basket.AddItemAsync(item, limitMax: product.Stock, ct);

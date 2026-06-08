@@ -3,6 +3,7 @@ using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using System.Net;
 using System.Net.Http.Json;
+using Visiativ.ApiService.Clients;
 using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
 
@@ -37,13 +38,13 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
+            .Returns(new ProductExt(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
         _factory.BasketClient
-            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .AddItemAsync(Arg.Any<BasketItemExt>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 3));
+            new AddItemRequestDto(productId, Quantity: 3));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
@@ -54,10 +55,10 @@ public class AddItemToBasketTests
         var unknownId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(unknownId, Arg.Any<CancellationToken>())
-            .Returns((ProductResponse?)null);
+            .Returns((ProductExt?)null);
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(unknownId, Quantity: 1));
+            new AddItemRequestDto(unknownId, Quantity: 1));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
@@ -68,10 +69,10 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 2));
+            .Returns(new ProductExt(productId, "Laptop", "High-end laptop", 999.99m, Stock: 2));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 5));
+            new AddItemRequestDto(productId, Quantity: 5));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
@@ -82,10 +83,10 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 0));
+            .Returns(new ProductExt(productId, "Laptop", "High-end laptop", 999.99m, Stock: 0));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 1));
+            new AddItemRequestDto(productId, Quantity: 1));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
@@ -99,14 +100,14 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
+            .Returns(new ProductExt(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
         _factory.BasketClient
-            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .AddItemAsync(Arg.Any<BasketItemExt>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(
                 new RemoteValidationException("La quantité doit être supérieure à zéro.")));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 3));
+            new AddItemRequestDto(productId, Quantity: 3));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
@@ -120,14 +121,14 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 5));
+            .Returns(new ProductExt(productId, "Laptop", "High-end laptop", 999.99m, Stock: 5));
         _factory.BasketClient
-            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .AddItemAsync(Arg.Any<BasketItemExt>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(
                 new RemoteConflictException("Oversize the limit: final quantity (7) exceeds the maximum allowed (5).")));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 3));
+            new AddItemRequestDto(productId, Quantity: 3));
 
         Assert.That((int)response.StatusCode, Is.EqualTo(409));
     }
@@ -138,11 +139,11 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<ProductResponse?>(
+            .Returns(Task.FromException<ProductExt?>(
                 new ServiceUnavailableException("CatalogService")));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 1));
+            new AddItemRequestDto(productId, Quantity: 1));
 
         Assert.That((int)response.StatusCode, Is.EqualTo(503));
     }
@@ -153,13 +154,13 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(new ProductResponse(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
+            .Returns(new ProductExt(productId, "Laptop", "High-end laptop", 999.99m, Stock: 10));
         _factory.BasketClient
-            .AddItemAsync(Arg.Any<BasketItem>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .AddItemAsync(Arg.Any<BasketItemExt>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(new ServiceUnavailableException("BasketService")));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 1));
+            new AddItemRequestDto(productId, Quantity: 1));
 
         Assert.That((int)response.StatusCode, Is.EqualTo(503));
     }
@@ -170,11 +171,11 @@ public class AddItemToBasketTests
         var productId = Guid.NewGuid();
         _factory.CatalogClient
             .GetProductByIdAsync(productId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<ProductResponse?>(
+            .Returns(Task.FromException<ProductExt?>(
                 new ServiceUnavailableException("CatalogService")));
 
         var response = await _client.PostAsJsonAsync("/basket/items",
-            new AddItemRequest(productId, Quantity: 1));
+            new AddItemRequestDto(productId, Quantity: 1));
         var body = await response.Content.ReadAsStringAsync();
 
         Assert.That(body, Does.Contain("CatalogService"));

@@ -1,17 +1,16 @@
 using System.Net;
 using Visiativ.ApiService.Abstractions;
 using Visiativ.ApiService.Exceptions;
-using Visiativ.ApiService.Models;
 
 namespace Visiativ.ApiService.Clients;
 
 public class BasketClient(HttpClient http) : IBasketClient
 {
-    public async Task<IEnumerable<BasketItem>> GetBasketAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<BasketItemExt>> GetBasketAsync(CancellationToken ct = default)
     {
         try
         {
-            var result = await http.GetFromJsonAsync<IEnumerable<BasketItem>>("/api/basket", ct);
+            var result = await http.GetFromJsonAsync<IEnumerable<BasketItemExt>>("/api/basket", ct);
             return result ?? [];
         }
         catch (HttpRequestException)
@@ -20,7 +19,7 @@ public class BasketClient(HttpClient http) : IBasketClient
         }
     }
 
-    public async Task AddItemAsync(BasketItem item, int? limitMax = null, CancellationToken ct = default)
+    public async Task AddItemAsync(BasketItemExt item, int? limitMax = null, CancellationToken ct = default)
     {
         HttpResponseMessage response;
         try
@@ -31,12 +30,7 @@ public class BasketClient(HttpClient http) : IBasketClient
             // → Socket.Receive(non-bloquant) → WOULDBLOCK.
             // Fix : StringContent + ContentLength explicite → body envoyé en une seule fois
             // avec header Content-Length (pas de chunked), + désactivation Expect: 100-continue.
-            var body = new
-            {
-                productId = item.ProductId,
-                quantity  = item.Quantity,
-                limitMax
-            };
+            var body  = new AddBasketItemExt(item.ProductId, item.Quantity, limitMax);
             var json  = System.Text.Json.JsonSerializer.Serialize(body);
             var bytes = System.Text.Encoding.UTF8.GetBytes(json);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");

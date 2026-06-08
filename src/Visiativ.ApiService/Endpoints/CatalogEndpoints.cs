@@ -10,9 +10,12 @@ public static class CatalogEndpoints
         var group = app.MapGroup("/products").WithTags("Products");
 
         group.MapGet("/", async (ICatalogClient catalog, CancellationToken ct) =>
-            Results.Ok(await catalog.GetAllProductsAsync(ct)))
-            .WithName("BFF_GetAllProducts")
-            .WithSummary("Retourne tous les produits du catalogue.")
-            .Produces<IEnumerable<ProductResponse>>();
+        {
+            var products = await catalog.GetAllProductsAsync(ct);
+            return Results.Ok(products.Select(ProductDto.From));
+        })
+        .WithName("BFF_GetAllProducts")
+        .WithSummary("Retourne tous les produits du catalogue.")
+        .Produces<IEnumerable<ProductDto>>();
     }
 }

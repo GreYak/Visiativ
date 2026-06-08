@@ -3,6 +3,7 @@ using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using System.Net;
 using System.Net.Http.Json;
+using Visiativ.ApiService.Clients;
 using Visiativ.ApiService.Models;
 
 namespace Visiativ.ApiService.Tests;
@@ -39,14 +40,14 @@ public class GetProductsTests
         var response = await _client.GetAsync("/products");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var body = await response.Content.ReadFromJsonAsync<List<ProductResponse>>();
+        var body = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
         Assert.That(body, Is.Empty);
     }
 
     [Test]
     public async Task Returns200_WithProducts()
     {
-        var products = new List<ProductResponse>
+        var products = new List<ProductExt>
         {
             new(Guid.NewGuid(), "Laptop", "High-end laptop", 999.99m, 10),
             new(Guid.NewGuid(), "Mouse",  "Wireless mouse",   29.99m, 50)
@@ -58,7 +59,7 @@ public class GetProductsTests
         var response = await _client.GetAsync("/products");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var body = await response.Content.ReadFromJsonAsync<List<ProductResponse>>();
+        var body = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
         Assert.That(body, Has.Count.EqualTo(2));
     }
 
@@ -71,7 +72,7 @@ public class GetProductsTests
     {
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<IEnumerable<ProductResponse>>(
+            .Returns(Task.FromException<IEnumerable<ProductExt>>(
                 new InvalidOperationException("Unexpected technical error")));
 
         var response = await _client.GetAsync("/products");
@@ -84,7 +85,7 @@ public class GetProductsTests
     {
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<IEnumerable<ProductResponse>>(
+            .Returns(Task.FromException<IEnumerable<ProductExt>>(
                 new InvalidOperationException("Unexpected technical error")));
 
         var response = await _client.GetAsync("/products");

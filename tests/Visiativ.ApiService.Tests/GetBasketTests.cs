@@ -3,6 +3,7 @@ using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using System.Net;
 using System.Net.Http.Json;
+using Visiativ.ApiService.Clients;
 using Visiativ.ApiService.Exceptions;
 using Visiativ.ApiService.Models;
 
@@ -39,10 +40,10 @@ public class GetBasketTests
     {
         _factory.BasketClient
             .GetBasketAsync(Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<BasketItem>());
+            .Returns(Enumerable.Empty<BasketItemExt>());
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<ProductResponse>());
+            .Returns(Enumerable.Empty<ProductExt>());
 
         var response = await _client.GetAsync("/basket");
 
@@ -58,15 +59,15 @@ public class GetBasketTests
             .GetBasketAsync(Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new BasketItem(LaptopId, Quantity: 1),
-                new BasketItem(MouseId, Quantity: 2)
+                new BasketItemExt(LaptopId, Quantity: 1),
+                new BasketItemExt(MouseId,  Quantity: 2)
             });
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new ProductResponse(LaptopId, "Laptop Pro", "High-end laptop", 1099.99m, Stock: 10),
-                new ProductResponse(MouseId,  "Mouse Pro",  "Wireless mouse",    34.99m, Stock:  5)
+                new ProductExt(LaptopId, "Laptop Pro", "High-end laptop", 1099.99m, Stock: 10),
+                new ProductExt(MouseId,  "Mouse Pro",  "Wireless mouse",    34.99m, Stock:  5)
             });
 
         var response = await _client.GetAsync("/basket");
@@ -96,14 +97,14 @@ public class GetBasketTests
             .GetBasketAsync(Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new BasketItem(LaptopId, Quantity: 1),
-                new BasketItem(unknownId, Quantity: 3)  // absent du catalogue
+                new BasketItemExt(LaptopId,   Quantity: 1),
+                new BasketItemExt(unknownId,  Quantity: 3)  // absent du catalogue
             });
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new ProductResponse(LaptopId, "Laptop Pro", "High-end laptop", 1099.99m, Stock: 10)
+                new ProductExt(LaptopId, "Laptop Pro", "High-end laptop", 1099.99m, Stock: 10)
             });
 
         var response = await _client.GetAsync("/basket");
@@ -119,7 +120,7 @@ public class GetBasketTests
     {
         _factory.BasketClient
             .GetBasketAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<IEnumerable<BasketItem>>(
+            .Returns(Task.FromException<IEnumerable<BasketItemExt>>(
                 new ServiceUnavailableException("BasketService")));
 
         var response = await _client.GetAsync("/basket");
@@ -132,10 +133,10 @@ public class GetBasketTests
     {
         _factory.BasketClient
             .GetBasketAsync(Arg.Any<CancellationToken>())
-            .Returns(new[] { new BasketItem(LaptopId, Quantity: 1) });
+            .Returns(new[] { new BasketItemExt(LaptopId, Quantity: 1) });
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<IEnumerable<ProductResponse>>(
+            .Returns(Task.FromException<IEnumerable<ProductExt>>(
                 new ServiceUnavailableException("CatalogService")));
 
         var response = await _client.GetAsync("/basket");

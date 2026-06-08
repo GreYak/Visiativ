@@ -1,16 +1,15 @@
 using Visiativ.ApiService.Abstractions;
 using Visiativ.ApiService.Exceptions;
-using Visiativ.ApiService.Models;
 
 namespace Visiativ.ApiService.Clients;
 
 public class CatalogClient(HttpClient http) : ICatalogClient
 {
-    public async Task<IEnumerable<ProductResponse>> GetAllProductsAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<ProductExt>> GetAllProductsAsync(CancellationToken ct = default)
     {
         try
         {
-            var result = await http.GetFromJsonAsync<IEnumerable<ProductResponse>>("/products", ct);
+            var result = await http.GetFromJsonAsync<IEnumerable<ProductExt>>("/products", ct);
             return result ?? [];
         }
         catch (HttpRequestException)
@@ -19,7 +18,7 @@ public class CatalogClient(HttpClient http) : ICatalogClient
         }
     }
 
-    public async Task<ProductResponse?> GetProductByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<ProductExt?> GetProductByIdAsync(Guid id, CancellationToken ct = default)
     {
         HttpResponseMessage response;
         try
@@ -37,6 +36,6 @@ public class CatalogClient(HttpClient http) : ICatalogClient
         if (!response.IsSuccessStatusCode)
             throw new ServiceUnavailableException("CatalogService");
 
-        return await response.Content.ReadFromJsonAsync<ProductResponse>(ct);
+        return await response.Content.ReadFromJsonAsync<ProductExt>(ct);
     }
 }

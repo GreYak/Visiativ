@@ -16,7 +16,7 @@ Responsabilités : proxy catalogue, gestion du panier (ajout avec contrôle de s
 |---|---|
 | Framework | ASP.NET Core 10 Minimal API |
 | Communication services | `HttpClient` (named/typed) |
-| Documentation API | Scalar (OpenAPI) |
+| Documentation API | Swagger UI (OpenAPI) |
 | Tests BFF | NUnit · NSubstitute · WebApplicationFactory |
 | Tests Blazor | bUnit · NSubstitute |
 
@@ -32,19 +32,21 @@ Visiativ.ApiService/
 │   └── ICatalogClient.cs             # Interface du client CatalogService
 ├── Clients/
 │   ├── BasketClient.cs               # HttpClient → BasketService
-│   └── CatalogClient.cs              # HttpClient → CatalogService
+│   ├── CatalogClient.cs              # HttpClient → CatalogService
+│   ├── BasketItemExt.cs              # Réponse BasketService (contrat externe)
+│   ├── ProductExt.cs                 # Réponse CatalogService (contrat externe)
+│   └── AddBasketItemExt.cs           # Corps POST /api/basket/add (contrat externe)
 ├── Endpoints/
 │   ├── BasketEndpoints.cs            # GET/DELETE /basket, POST /basket/items
-│   └── CatalogEndpoints.cs           # GET /products, GET /products/{id}
+│   └── CatalogEndpoints.cs           # GET /products
 ├── Exceptions/
 │   ├── ServiceUnavailableException.cs
 │   ├── RemoteValidationException.cs  # Wrapping d'un 400 reçu d'un service backend
 │   └── RemoteConflictException.cs    # Wrapping d'un 409 reçu de BasketService
 └── Models/
-    ├── AddItemRequest.cs
-    ├── BasketItem.cs
-    ├── BasketItemDto.cs
-    └── ProductResponse.cs
+    ├── AddItemRequestDto.cs          # Corps POST /basket/items reçu du frontend
+    ├── ProductDto.cs                 # Produit exposé au frontend
+    └── BasketItemDto.cs              # Vue consolidée panier + catalogue exposée au frontend
 ```
 
 ### Clients HTTP
@@ -69,25 +71,36 @@ Visiativ.ApiService/
 
 ## 4. Modèle de données / base de données
 
-Le BFF n'a pas de base de données propre. Il manipule les modèles suivants :
+Le BFF n'a pas de base de données propre. Les modèles sont séparés en deux catégories :
 
-| Modèle | Description |
+**DTOs (`/Models`) — contrat BFF ↔ frontend**
+
+| Type | Description |
 |---|---|
-| `AddItemRequest` | Corps de `POST /basket/items` : `{ productId, quantity }` |
-| `BasketItem` | Miroir du modèle BasketService : `{ productId, quantity }` |
-| `ProductResponse` | DTO catalogue : `{ id, name, description, price, stock }` |
-| `BasketItemDto` | Vue consolidée panier + catalogue (voir tableau ci-dessous) |
+| `AddItemRequestDto` | Corps de `POST /basket/items` reçu du frontend : `{ productId, quantity }` |
+| `ProductDto` | Produit exposé au frontend : `{ id, name, description, price, stock }` |
+| `BasketItemDto` | Vue consolidée panier + catalogue exposée au frontend |
+
+**Ext (`/Clients`) — contrats BFF ↔ services externes**
+
+| Type | Description |
+|---|---|
+| `BasketItemExt` | Réponse de BasketService : `{ productId, quantity }` |
+| `ProductExt` | Réponse de CatalogService : `{ id, name, description, price, stock }` |
+| `AddBasketItemExt` | Corps du `POST /api/basket/add` envoyé à BasketService : `{ productId, quantity, limitMax? }` |
+
+Les DTOs exposés au frontend sont construits à partir des types Ext via des méthodes de conversion statiques dédiées (`BasketItemDto.From(BasketItemExt, ProductExt)`, `ProductDto.From(ProductExt)`).
 
 **`BasketItemDto` — sources des champs :**
 
 | Champ | Source |
 |---|---|
-| `ProductId` | BasketService |
-| `Quantity` | BasketService |
-| `Name` | CatalogService |
-| `Description` | CatalogService |
-| `Price` | CatalogService |
-| `Stock` | CatalogService |
+| `ProductId` | `BasketItemExt` |
+| `Quantity` | `BasketItemExt` |
+| `Name` | `ProductExt` |
+| `Description` | `ProductExt` |
+| `Price` | `ProductExt` |
+| `Stock` | `ProductExt` |
 
 ---
 
@@ -99,7 +112,7 @@ Proxy transparent vers `CatalogService GET /products`.
 
 | Code | Description |
 |---|---|
-| 200 · `ProductResponse[]` | Liste des produits |
+| 200 · `ProductDto[]` | Liste des produits |
 | 503 | CatalogService indisponible |
 
 ### `POST /basket/items`
