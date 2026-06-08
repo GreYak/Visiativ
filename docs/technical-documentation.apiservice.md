@@ -152,6 +152,52 @@ Implémente `ICatalogClient`.
 
 ---
 
+## Tests
+
+**Projet :** `tests/Visiativ.ApiService.Tests/` — NUnit · NSubstitute · WebApplicationFactory
+
+### Approche
+
+Les tests sont des **tests d'intégration** : l'hôte ASP.NET Core complet est démarré en mémoire via `WebApplicationFactory<Program>`. Chaque test envoie de vraies requêtes HTTP au BFF et reçoit de vraies réponses JSON. Les seules couches remplacées sont les deux clients HTTP (`IBasketClient` et `ICatalogClient`), qui sont les frontières externes du BFF.
+
+### `ApiServiceWebApplicationFactory`
+
+Étend `WebApplicationFactory<Program>` et remplace les implémentations réelles des clients par des mocks NSubstitute :
+
+```csharp
+public ICatalogClient CatalogClient { get; } = Substitute.For<ICatalogClient>();
+public IBasketClient  BasketClient  { get; } = Substitute.For<IBasketClient>();
+```
+
+Les mocks sont exposés en propriétés publiques : chaque test les configure via `.Returns(...)` ou `.Throws(...)` avant d'émettre une requête HTTP. Cela permet de tester tous les scénarios d'orchestration du BFF (produit introuvable, 409 de BasketService, 207 partiel…) sans dépendre des services réels.
+
+### Organisation des tests
+
+```
+Visiativ.ApiService.Tests/
+├── ApiServiceWebApplicationFactory.cs   # Infrastructure partagée
+├── GetProductTests.cs                   # GET /products
+├── AddItemToBasketTests.cs              # POST /basket/items
+├── GetBasketTests.cs                    # GET /basket
+└── ClearBasketTests.cs                  # DELETE /basket
+```
+
+Une classe par endpoint. Chaque classe instancie sa propre factory et configure les mocks dans chaque test — pas d'état partagé entre tests.
+
+### Tests composants Blazor — `Visiativ.Web.Tests`
+
+**Projet :** `tests/Visiativ.Web.Tests/` — bUnit · NSubstitute
+
+Les composants Blazor (`Basket.razor`, `Products.razor`) sont testés en isolation via **bUnit**. `IVisiativApiClient` est mocké avec NSubstitute et injecté dans le conteneur de services bUnit. Les tests vérifient le rendu HTML produit par le composant selon les données retournées par le mock.
+
+```
+Visiativ.Web.Tests/
+├── BasketPageTests.cs      # Tests composant Basket.razor
+└── ProductsPageTests.cs    # Tests composant Products.razor
+```
+
+---
+
 ## Swagger / OpenAPI
 
 Interface interactive **Scalar** disponible en mode développement à :

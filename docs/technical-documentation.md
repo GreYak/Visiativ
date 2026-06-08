@@ -1,9 +1,9 @@
 # Documentation Technique — Vue d'ensemble
 
 > **Documentation détaillée par service :**
-> - [catalogservice.technical-documentation.md](catalogservice.technical-documentation.md)
-> - [basketservice.technical-documentation.md](basketservice.technical-documentation.md)
-> - [apiservice.technical-documentation.md](apiservice.technical-documentation.md)
+> - [technical-documentation.catalogservice.md](technical-documentation.catalogservice.md)
+> - [technical-documentation.basketservice.md](technical-documentation.basketservice.md)
+> - [technical-documentation.apiservice.md](technical-documentation.apiservice.md)
 
 ---
 
@@ -15,9 +15,17 @@ Visiativ/
 ├── aspire.config.json                     # Configuration Aspire
 ├── README.md                              # Point d'entrée documentation
 │
+├── docs/
+│   ├── architecture.md
+│   ├── quick-start.md
+│   ├── technical-documentation.md        # Ce fichier — vue d'ensemble
+│   ├── technical-documentation.catalogservice.md
+│   ├── technical-documentation.basketservice.md
+│   └── technical-documentation.apiservice.md
+│
 ├── src/
 │   ├── Visiativ.AppHost/                  # Orchestrateur Aspire
-│   │   └── AppHost.cs                     # Déclaration des ressources (SQL, services, Docker)
+│   │   └── AppHost.cs                     # Déclaration des ressources (SQL Server, services, Docker)
 │   │
 │   ├── Visiativ.ServiceDefaults/          # Bibliothèque partagée (net10)
 │   │   ├── Extensions.cs                  # AddServiceDefaults, UseExceptionHandlingMiddleware,
@@ -28,30 +36,16 @@ Visiativ/
 │   │   └── Networking/
 │   │       └── OutboundHttpLoggingHandler.cs   # DelegatingHandler : log des appels HTTP sortants
 │   │
-│   ├── CatalogService/                    # Service catalogue (net10) — voir catalogservice.technical-documentation.md
-│   │
-│   ├── BasketService/                     # Service panier (net48) — voir basketservice.technical-documentation.md
-│   │
-│   ├── Visiativ.ApiService/               # BFF (net10) — voir apiservice.technical-documentation.md
-│   │
+│   ├── CatalogService/                    # → voir technical-documentation.catalogservice.md
+│   ├── BasketService/                     # → voir technical-documentation.basketservice.md
+│   ├── Visiativ.ApiService/               # → voir technical-documentation.apiservice.md
 │   └── Visiativ.Web/                      # Frontend Blazor Server (net10)
-│       ├── Program.cs
-│       ├── VisiativApiClient.cs           # Client HTTP vers le BFF
-│       └── Components/Pages/
-│           ├── Products.razor             # Liste des produits + ajout au panier
-│           └── Basket.razor               # Contenu du panier + vidage
 │
 └── tests/
+    ├── CatalogService.Tests/              # Tests intégration CatalogService (WebApplicationFactory)
     ├── Visiativ.ApiService.Tests/         # Tests intégration BFF (WebApplicationFactory + NSubstitute)
-    │   ├── AddItemToBasketTests.cs
-    │   ├── GetBasketTests.cs
-    │   ├── ClearBasketTests.cs
-    │   └── GetProductTests.cs
-    └── BasketService.Tests/               # Tests intégration BasketService (HttpServer WebAPI)
-        ├── BasketControllerAddTests.cs
-        ├── BasketControllerGetTests.cs
-        ├── BasketControllerDeleteTests.cs
-        └── InMemoryBasketItemRepository.cs
+    ├── BasketService.Tests/               # Tests intégration BasketService (HttpServer WebAPI + NUnit)
+    └── Visiativ.Web.Tests/                # Tests composants Blazor (bUnit + NSubstitute)
 ```
 
 ---

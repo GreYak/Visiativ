@@ -8,7 +8,10 @@
     <Project Path="src/Visiativ.Web/Visiativ.Web.csproj" />
   </Folder>
   <Folder Name="/docs/">
+    <File Path="docs/basketservice.technical-documentation.md" />
+    <File Path="docs/catalogservice.technical-documentation.md" />
     <File Path="docs/quick-start.md" />
+    <File Path="docs/apiservice.technical-documentation.md" />
     <File Path="docs/architecture.md" />
     <File Path="docs/technical-documentation.md" />
   </Folder>

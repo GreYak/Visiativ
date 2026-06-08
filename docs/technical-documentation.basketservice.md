@@ -137,6 +137,43 @@ Vide le panier (supprime toutes les lignes).
 
 ---
 
+## Tests
+
+**Projet :** `tests/BasketService.Tests/` — NUnit · NSubstitute · HttpServer (in-process WebAPI)
+
+### Approche
+
+`WebApplicationFactory` n'est pas disponible sur .NET Framework 4.8. Les tests utilisent à la place **`HttpServer`** (classe `System.Web.Http.HttpServer`) : le pipeline WebAPI complet est instancié en mémoire sans lancer de socket TCP. Les requêtes sont envoyées via un `HttpClient` wrappant directement ce serveur.
+
+### Stratégie de substitution
+
+Deux approches selon le scénario testé :
+
+**NSubstitute (mock classique)** — utilisé quand le test n'a pas besoin d'état accumulé entre les appels (vérifier un code HTTP, simuler une exception). Le repository est créé avec `Substitute.For<IBasketItemRepository>()` et configuré via `.Returns(...)` ou `.Throws(...)`.
+
+**`InMemoryBasketItemRepository` (faux réel)** — utilisé quand le test exerce une logique qui dépend de l'état courant du panier (ex. : ajouter deux fois le même produit et vérifier l'accumulation). Contrairement à un mock, ce faux implémente réellement `IBasketItemRepository` avec une liste en mémoire dont l'état persiste entre les appels HTTP d'un même test.
+
+### `BasketControllerTestBase`
+
+Classe de base abstraite partagée par toutes les classes de test.
+
+`CreateClient(IBasketItemRepository)` construit un `HttpServer` configuré avec `WebApiConfig.Register()` et un `TestDependencyResolver` personnalisé. Ce resolver crée une **nouvelle instance de `BasketController` à chaque requête** — comportement indispensable car `ApiController` implémente `IDisposable` : Web API dispose le contrôleur après chaque appel, et une instance réutilisée lèverait `ObjectDisposedException`.
+
+### Organisation des tests
+
+```
+BasketService.Tests/
+├── BasketControllerTestBase.cs       # HttpServer, TestDependencyResolver, PostItem()
+├── InMemoryBasketItemRepository.cs   # Faux réel — IBasketItemRepository en mémoire
+├── BasketControllerGetTests.cs       # 4 tests — GET /api/basket
+├── BasketControllerAddTests.cs       # 10 tests — POST /api/basket/add
+└── BasketControllerDeleteTests.cs    # 3 tests — DELETE /api/basket
+```
+
+Une classe par endpoint. Les tests d'erreur DB vérifient à la fois le code HTTP et le format JSON de la réponse d'erreur (`{ "status": 500, "error": "..." }`), garantissant le comportement du `GlobalExceptionFilter`.
+
+---
+
 ## Infrastructure Docker / Mono
 
 Le BasketService est compilé pour `net4.7.2` (compatibilité Mono) et packagé dans un conteneur Linux via l'image `mono:6.12`. Le serveur HTTP est `xsp4` (implémentation Mono d'ASP.NET).
