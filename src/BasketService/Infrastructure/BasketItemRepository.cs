@@ -24,7 +24,7 @@ namespace BasketService.Infrastructure
             {
                 connection.Open();
 
-                var sql = "SELECT ProductId, Name, Price, Quantity FROM BasketItems";
+                var sql = "SELECT ProductId, Quantity FROM BasketItems";
 
                 using (var command = new SqlCommand(sql, connection))
                 using (var reader = command.ExecuteReader())
@@ -33,9 +33,7 @@ namespace BasketService.Infrastructure
                     {
                         items.Add(new BasketItem(
                             productId: reader.GetGuid(0),
-                            name:      reader.GetString(1),
-                            price:     reader.GetDecimal(2),
-                            quantity:  reader.GetInt32(3)
+                            quantity:  reader.GetInt32(1)
                         ));
                     }
                 }
@@ -45,8 +43,8 @@ namespace BasketService.Infrastructure
         }
 
         /// <summary>
-        /// Insère l'item s'il n'existe pas encore, ou met à jour sa quantité et son prix.
-        /// La quantité passée est la quantité finale souhaitée — le calcul d'accumulation
+        /// Insère l'item s'il n'existe pas encore, ou met à jour sa quantité.
+        /// La quantité passée est la quantité finale — le calcul d'accumulation
         /// est de la responsabilité du domaine (<see cref="Domain.AddItemToBasket"/>).
         /// </summary>
         public void EnsureBasketItem(BasketItem item)
@@ -60,16 +58,14 @@ namespace BasketService.Infrastructure
                     USING (SELECT @ProductId AS ProductId) AS source
                         ON target.ProductId = source.ProductId
                     WHEN MATCHED THEN
-                        UPDATE SET Quantity = @Quantity, Price = @Price
+                        UPDATE SET Quantity = @Quantity
                     WHEN NOT MATCHED THEN
-                        INSERT (ProductId, Name, Price, Quantity)
-                        VALUES (@ProductId, @Name, @Price, @Quantity);";
+                        INSERT (ProductId, Quantity)
+                        VALUES (@ProductId, @Quantity);";
 
                 using (var command = new SqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@ProductId", item.ProductId);
-                    command.Parameters.AddWithValue("@Name",      item.Name);
-                    command.Parameters.AddWithValue("@Price",     item.Price);
                     command.Parameters.AddWithValue("@Quantity",  item.Quantity);
                     command.ExecuteNonQuery();
                 }

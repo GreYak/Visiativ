@@ -30,8 +30,6 @@ namespace BasketService.Tests
             var body = new
             {
                 productId = item.ProductId,
-                name      = item.Name,
-                price     = item.Price,
                 quantity  = item.Quantity,
                 limitMax
             };

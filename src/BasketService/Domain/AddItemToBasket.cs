@@ -33,7 +33,7 @@ namespace BasketService.Domain
                 throw new InvalidOperationException(
                     $"Oversize the limit: final quantity ({finalQuantity}) exceeds the maximum allowed ({limitMax.Value}).");
 
-            var finalItem = new BasketItem(item.ProductId, item.Name, item.Price, finalQuantity);
+            var finalItem = new BasketItem(item.ProductId, finalQuantity);
 
             _repository.EnsureBasketItem(finalItem);
             return Task.CompletedTask;

@@ -113,7 +113,7 @@ public static class BasketEndpoints
 
             // 3. Ajout au panier — limitMax = stock catalogue pour éviter de dépasser le stock
             //    disponible après accumulation des quantités déjà en panier.
-            var item = new BasketItem(product.Id, product.Name, product.Price, req.Quantity);
+            var item = new BasketItem(product.Id, req.Quantity);
             try
             {
                 await basket.AddItemAsync(item, limitMax: product.Stock, ct);

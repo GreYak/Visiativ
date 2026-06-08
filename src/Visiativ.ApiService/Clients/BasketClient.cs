@@ -34,8 +34,6 @@ public class BasketClient(HttpClient http) : IBasketClient
             var body = new
             {
                 productId = item.ProductId,
-                name      = item.Name,
-                price     = item.Price,
                 quantity  = item.Quantity,
                 limitMax
             };

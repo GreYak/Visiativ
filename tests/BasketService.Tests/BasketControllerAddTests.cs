@@ -21,7 +21,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 1));
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), 1));
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             }
@@ -34,7 +34,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, -1));
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), -1));
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
             }
@@ -47,7 +47,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 0));
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), 0));
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
             }
@@ -62,7 +62,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 1));
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), 1));
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(500));
             }
@@ -77,7 +77,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Keyboard", 89.99m, 1));
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), 1));
                 var body = await response.Content.ReadAsStringAsync();
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(500));
@@ -93,7 +93,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 2));
+                var response = await PostItem(client, new BasketItem(productId, 2));
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 Assert.That(repo.Get().Single(i => i.ProductId == productId).Quantity, Is.EqualTo(2));
@@ -108,25 +108,10 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 2));
-                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 3));
+                await PostItem(client, new BasketItem(productId, 2));
+                await PostItem(client, new BasketItem(productId, 3));
 
                 Assert.That(repo.Get().Single(i => i.ProductId == productId).Quantity, Is.EqualTo(5));
-            }
-        }
-
-        [Test]
-        public async Task Add_SameItemTwice_UpdatesPriceToLatest()
-        {
-            var repo = new InMemoryBasketItemRepository();
-            var productId = Guid.NewGuid();
-
-            using (var client = CreateClient(repo))
-            {
-                await PostItem(client, new BasketItem(productId, "Laptop", 899.99m, 1));
-                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 1));
-
-                Assert.That(repo.Get().Single(i => i.ProductId == productId).Price, Is.EqualTo(999.99m));
             }
         }
 
@@ -137,7 +122,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Laptop", 999.99m, 1), limitMax: -1);
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), 1), limitMax: -1);
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
             }
@@ -150,7 +135,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Laptop", 999.99m, 1), limitMax: 0);
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), 1), limitMax: 0);
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
             }
@@ -164,7 +149,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 5), limitMax: 5);
+                var response = await PostItem(client, new BasketItem(productId, 5), limitMax: 5);
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 Assert.That(repo.Get().Single(i => i.ProductId == productId).Quantity, Is.EqualTo(5));
@@ -178,7 +163,7 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), "Laptop", 999.99m, 5), limitMax: 3);
+                var response = await PostItem(client, new BasketItem(Guid.NewGuid(), 5), limitMax: 3);
                 var body = await response.Content.ReadAsStringAsync();
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(409));
@@ -194,8 +179,8 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 2), limitMax: 10);
-                var response = await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 3), limitMax: 10);
+                await PostItem(client, new BasketItem(productId, 2), limitMax: 10);
+                var response = await PostItem(client, new BasketItem(productId, 3), limitMax: 10);
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 Assert.That(repo.Get().Single(i => i.ProductId == productId).Quantity, Is.EqualTo(5));
@@ -210,8 +195,8 @@ namespace BasketService.Tests
 
             using (var client = CreateClient(repo))
             {
-                await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 2), limitMax: 4);
-                var response = await PostItem(client, new BasketItem(productId, "Laptop", 999.99m, 3), limitMax: 4);
+                await PostItem(client, new BasketItem(productId, 2), limitMax: 4);
+                var response = await PostItem(client, new BasketItem(productId, 3), limitMax: 4);
                 var body = await response.Content.ReadAsStringAsync();
 
                 Assert.That((int)response.StatusCode, Is.EqualTo(409));

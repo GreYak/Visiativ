@@ -58,8 +58,8 @@ public class GetBasketTests
             .GetBasketAsync(Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new BasketItem(LaptopId, "Laptop", 999.99m, Quantity: 1),
-                new BasketItem(MouseId,  "Mouse",   29.99m, Quantity: 2)
+                new BasketItem(LaptopId, Quantity: 1),
+                new BasketItem(MouseId, Quantity: 2)
             });
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
@@ -96,8 +96,8 @@ public class GetBasketTests
             .GetBasketAsync(Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new BasketItem(LaptopId,  "Laptop", 999.99m, Quantity: 1),
-                new BasketItem(unknownId, "???",      0.00m, Quantity: 3)  // absent du catalogue
+                new BasketItem(LaptopId, Quantity: 1),
+                new BasketItem(unknownId, Quantity: 3)  // absent du catalogue
             });
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
@@ -132,7 +132,7 @@ public class GetBasketTests
     {
         _factory.BasketClient
             .GetBasketAsync(Arg.Any<CancellationToken>())
-            .Returns(new[] { new BasketItem(LaptopId, "Laptop", 999.99m, Quantity: 1) });
+            .Returns(new[] { new BasketItem(LaptopId, Quantity: 1) });
         _factory.CatalogClient
             .GetAllProductsAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromException<IEnumerable<ProductResponse>>(

@@ -31,7 +31,7 @@ namespace BasketService.Controllers
             return Ok(items);
         }
 
-        // POST api/basket/add  (body JSON : { productId, name, price, quantity, limitMax? })
+        // POST api/basket/add  (body JSON : { productId, quantity, limitMax? })
         [HttpPost]
         [Route("add")]
         public async Task<IHttpActionResult> Add(AddItemRequest request)

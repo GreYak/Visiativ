@@ -36,8 +36,8 @@ namespace BasketService.Tests
         {
             var items = new List<BasketItem>
             {
-                new BasketItem(Guid.NewGuid(), "Laptop", 999.99m, 1),
-                new BasketItem(Guid.NewGuid(), "Mouse",   29.99m, 2)
+                new BasketItem(Guid.NewGuid(), 1),
+                new BasketItem(Guid.NewGuid(), 2)
             };
             var repo = Substitute.For<IBasketItemRepository>();
             repo.Get().Returns(items);
