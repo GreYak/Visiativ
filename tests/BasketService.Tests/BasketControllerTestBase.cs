@@ -24,10 +24,19 @@ namespace BasketService.Tests
             return new HttpClient(new HttpServer(config));
         }
 
-        protected static System.Threading.Tasks.Task<HttpResponseMessage> PostItem(HttpClient client, BasketItem item)
+        protected static System.Threading.Tasks.Task<HttpResponseMessage> PostItem(
+            HttpClient client, BasketItem item, int? limitMax = null)
         {
+            var body = new
+            {
+                productId = item.ProductId,
+                name      = item.Name,
+                price     = item.Price,
+                quantity  = item.Quantity,
+                limitMax
+            };
             var content = new StringContent(
-                JsonConvert.SerializeObject(item), Encoding.UTF8, "application/json");
+                JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
             return client.PostAsync(BaseUrl + "/add", content);
         }
 

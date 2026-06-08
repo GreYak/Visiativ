@@ -15,7 +15,7 @@ namespace BasketService.Domain
             _repository = repository;
         }
 
-        public Task HandleAsync(BasketItem item)
+        public Task HandleAsync(BasketItem item, int? limitMax = null)
         {
             if (item.Quantity <= 0)
                 throw new ArgumentException("La quantité doit être supérieure à zéro.", nameof(item));
@@ -28,6 +28,10 @@ namespace BasketService.Domain
             var finalQuantity = existing != null
                 ? existing.Quantity + item.Quantity
                 : item.Quantity;
+
+            if (limitMax.HasValue && finalQuantity > limitMax.Value)
+                throw new ArgumentException(
+                    $"Oversize the limit: final quantity ({finalQuantity}) exceeds the maximum allowed ({limitMax.Value}).");
 
             var finalItem = new BasketItem(item.ProductId, item.Name, item.Price, finalQuantity);
 

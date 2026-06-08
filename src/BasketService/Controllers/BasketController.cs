@@ -31,17 +31,20 @@ namespace BasketService.Controllers
             return Ok(items);
         }
 
-        // POST api/basket/add  (body JSON)
+        // POST api/basket/add  (body JSON : { productId, name, price, quantity, limitMax? })
         [HttpPost]
         [Route("add")]
-        public async Task<IHttpActionResult> Add(BasketItem item)
+        public async Task<IHttpActionResult> Add(AddItemRequest request)
         {
-            if (item == null)
-                return BadRequest("Item invalide.");
+            if (request == null)
+                return BadRequest("Requête invalide.");
+
+            if (request.LimitMax.HasValue && request.LimitMax.Value < 0)
+                return BadRequest("Le paramètre limitMax doit être positif.");
 
             try
             {
-                await _addItemToBasket.HandleAsync(item);
+                await _addItemToBasket.HandleAsync(request.ToBasketItem(), request.LimitMax);
                 return Ok();
             }
             catch (ArgumentException ex)
