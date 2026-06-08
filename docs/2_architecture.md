@@ -59,12 +59,11 @@ Visiativ/
 ├── README.md                              # Point d'entrée documentation
 │
 ├── docs/
-│   ├── architecture.md
-│   ├── quick-start.md
-│   ├── technical-documentation.md
-│   ├── technical-documentation.catalogservice.md
-│   ├── technical-documentation.basketservice.md
-│   └── technical-documentation.apiservice.md
+│   ├── 1_quick-start.md
+│   ├── 2_architecture.md
+│   ├── 3_technical-documentation.catalogservice.md
+│   ├── 4_technical-documentation.basketservice.md
+│   └── 5_technical-documentation.apiservice.md
 │
 ├── src/
 │   ├── Visiativ.AppHost/                  # Orchestrateur Aspire
@@ -79,9 +78,9 @@ Visiativ/
 │   │   └── Networking/
 │   │       └── OutboundHttpLoggingHandler.cs   # DelegatingHandler : log des appels HTTP sortants
 │   │
-│   ├── CatalogService/                    # → voir technical-documentation.catalogservice.md
-│   ├── BasketService/                     # → voir technical-documentation.basketservice.md
-│   ├── Visiativ.ApiService/               # → voir technical-documentation.apiservice.md
+│   ├── CatalogService/                    # → voir 3_technical-documentation.catalogservice.md
+│   ├── BasketService/                     # → voir 4_technical-documentation.basketservice.md
+│   ├── Visiativ.ApiService/               # → voir 5_technical-documentation.apiservice.md
 │   └── Visiativ.Web/                      # Frontend Blazor Server (net10)
 │
 └── tests/
@@ -93,9 +92,9 @@ Visiativ/
 
 ### Documentation détaillée par service
 
-- [CatalogService](technical-documentation.catalogservice.md)
-- [BasketService](technical-documentation.basketservice.md)
-- [ApiService (BFF)](technical-documentation.apiservice.md)
+- [CatalogService](3_technical-documentation.catalogservice.md)
+- [BasketService](4_technical-documentation.basketservice.md)
+- [ApiService (BFF)](5_technical-documentation.apiservice.md)
 
 
 ### Dépendances entre composants

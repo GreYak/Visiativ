@@ -23,7 +23,7 @@ Navigateur → BFF (ApiService) → CatalogService ─→ SQL Server (catalogdb)
 
 ## Lancer l'application
 
-Voir [docs/quick-start.md](docs/quick-start.md) pour les prérequis et les étapes détaillées.
+Voir [docs/1_quick-start.md](docs/1_quick-start.md) pour les prérequis et les étapes détaillées.
 
 En résumé :
 
@@ -40,9 +40,9 @@ cd visiativ
 
 | Document | Contenu |
 |---|---|
-| [quick-start.md](docs/quick-start.md) | Prérequis, installation, lancement pas à pas |
-| [architecture.md](docs/architecture.md) | Présentation des briques, schéma global, diagrammes de séquence |
-| [technical-documentation.catalogservice.md](docs/technical-documentation.catalogservice.md) | Modèle, EF Core, migrations, APIs CatalogService |
-| [technical-documentation.basketservice.md](docs/technical-documentation.basketservice.md) | Modèle, DB ADO.NET, APIs BasketService |
-| [technical-documentation.apiservice.md](docs/technical-documentation.apiservice.md) | Clients HTTP, endpoints BFF, modèles, traduction des erreurs |
+| [1_quick-start.md](docs/1_quick-start.md) | Prérequis, installation, lancement pas à pas |
+| [2_architecture.md](docs/2_architecture.md) | Présentation des briques, schéma global, diagrammes de séquence |
+| [3_technical-documentation.catalogservice.md](docs/3_technical-documentation.catalogservice.md) | Modèle, EF Core, migrations, APIs CatalogService |
+| [4_technical-documentation.basketservice.md](docs/4_technical-documentation.basketservice.md) | Modèle, DB ADO.NET, APIs BasketService |
+| [5_technical-documentation.apiservice.md](docs/5_technical-documentation.apiservice.md) | Clients HTTP, endpoints BFF, modèles, traduction des erreurs |
 
