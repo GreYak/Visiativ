@@ -118,6 +118,49 @@ graph LR
 
 ---
 
+### Cycle de démarrage
+
+Aspire orchestre le démarrage ordonné via des dépendances déclaratives (`WaitFor`). CatalogService et BasketService démarrent en parallèle dès que leurs bases respectives sont disponibles ; le BFF et le frontend ne démarrent qu'une fois les deux services backend healthy.
+
+```mermaid
+sequenceDiagram
+    participant AppHost as Visiativ.AppHost
+    participant SQL as SQL Server
+    participant Cat as CatalogService
+    participant Bas as BasketService (Docker)
+    participant BFF as ApiService (BFF)
+    participant Web as Visiativ.Web
+
+    AppHost->>SQL: Démarre le conteneur SQL Server
+    SQL-->>AppHost: Healthy
+    AppHost->>SQL: Crée catalogdb + basketdb
+    SQL-->>AppHost: Bases disponibles
+
+    par CatalogService
+        AppHost->>Cat: Démarre CatalogService
+        note over Cat: Migration EF Core + seeding (Dev)
+        Cat-->>AppHost: Healthy · /health
+    and BasketService
+        AppHost->>Bas: Build + démarre le conteneur Docker
+        note over Bas: DatabaseInitializer.Initialize()
+        Bas-->>AppHost: Healthy · /api/basket/alive
+    end
+
+    AppHost->>BFF: Démarre ApiService (BFF)
+    BFF-->>AppHost: Healthy · /health
+
+    AppHost->>Web: Démarre Visiativ.Web
+    Web-->>AppHost: Healthy · /health
+```
+
+---
+
+### Protocoles HTTP / HTTPS
+
+Le frontend (`Visiativ.Web`) expose son point d'entrée public en **HTTPS**. Les communications internes entre services (BFF → CatalogService, BFF → BasketService) s'effectuent en **HTTP** via le service discovery Aspire, dans un réseau isolé — aucun chiffrement de transport n'est requis entre les composants backend.
+
+---
+
 ## Use Cases — Diagrammes de séquence
 
 ### 1. Consulter le catalogue produits
