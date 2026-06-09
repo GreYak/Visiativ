@@ -337,6 +337,10 @@ Le BasketService ne stocke que `ProductId` et `Quantity` — les informations pr
 
 ### Pistes d'amélioration
 
-- Ajouter une gestion de plusieurs paniers dans l'API
+- Amélioration des performances du BFF, notamment sur la jointure entre le panier et le catalogue : parrallélisme des requêtes GET
+- L'implémentation faite suppose un catalogue de taille modeste, cependant dans un monde de production un filtre sur la récupération des items du catalogue serait nécessaire (voire une mise en cache).
+- Ajouter une gestion de plusieurs paniers dans l'API (création d'un id de panier et d'une entité panier réelle)
 - Introduire une réservation de stock dans CatalogService
-- Ajouter des tests d'intégration end-to-end (AppHost Aspire + vrai SQL Server en test) 
+- Ajout des tests de comportements de type BDD (avec ReqNroll) afin de garantir les scénarios Backends
+- Ajouter des tests end-to-end notamment avec playright afin de garantir la cohérence front-backend.
+- uniformiser les architectures, avec abstraction des layers et utilisation de repository (notamment sur le catalogue service)
